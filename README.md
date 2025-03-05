@@ -39,7 +39,8 @@ This solution will streamline the review process, reduce manual effort, and lay 
 ├── Scripts/
 │   ├── deploy.sh                 # Bash script to deploy Azure resources
 │   ├── setup.sh                  # Bash script for initial setup/configuration
-│   └── retrain_pipeline.sh       # Script to trigger model retraining
+│   ├── retrain_pipeline.sh       # Script to trigger model retraining
+│   └── Infra/                      # Contains infrastructure-related scripts                      
 │
 ├── Notebooks/
 │   ├── Exploratory_Data_Analysis.ipynb  # For initial data exploration
