@@ -8,26 +8,47 @@ venv/
 env/
 .venv/
 
-# Environment variables and sensitive config files
-.env
-local.settings.json  # Azure Functions local settings (avoid committing secrets)
+# Anaconda environments (if applicable)
+*.conda
+*.ipynb_checkpoints/
 
-# VS Code settings (if using Visual Studio Code)
-.vscode/
-
-# Log files and temporary files
-*.log
-*.tmp
-*.swp
-
-# Bash script temporary files
-*.sh~
-
-# Build artifacts
+# Package directories
 build/
 dist/
 *.egg-info/
 
+# Local dependency directories
+.eggs/
+pip-wheel-metadata/
+
+# VS Code settings
+.vscode/
+
+# Azure Functions local settings & build artifacts
+local.settings.json   # local config that contains secrets
+.azurefunctions/      # Azure Functions build output
+host.json             # if not necessary for production
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Log files
+*.log
+
+# Temporary files
+*.tmp
+*.swp
+*~
+
 # OS-specific files
 .DS_Store
 Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Other sensitive files
+.env
+secret*.json
+
+# Miscellaneous
+*.bak
