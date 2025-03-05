@@ -1,0 +1,33 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment directories
+venv/
+env/
+.venv/
+
+# Environment variables and sensitive config files
+.env
+local.settings.json  # Azure Functions local settings (avoid committing secrets)
+
+# VS Code settings (if using Visual Studio Code)
+.vscode/
+
+# Log files and temporary files
+*.log
+*.tmp
+*.swp
+
+# Bash script temporary files
+*.sh~
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
