@@ -4,12 +4,12 @@
 # Reference Infra scripts in teh Infra folder
 
 # Pre-check
-echo "Running pre-check"
-sh ./Infra/0_pre_check.sh
+echo "Running Azure Authentication"
+sh ./Infra/0_azure_auth.sh
 
 # Deploy Resource Group
 echo "Deploying Resource Group"
-sh ./Infra/1_create_resource_group.sh
+sh ./Infra/1_create_rg.sh
 
 # Deploy Storage Account
 echo "Deploying Storage Account"

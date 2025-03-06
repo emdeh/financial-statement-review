@@ -15,7 +15,7 @@ else
     echo "🔹 Resource Group \"$AZURE_RESOURCE_GROUP\" does not exist. Creating it now..."
     az deployment sub create \
         --location "$AZURE_LOCATION" \
-        --template-file "$(pwd)/infra/main.bicep" \
+        --template-file "$(pwd)/infra/bicep/resource_group.bicep" \
         --parameters location="$AZURE_LOCATION" resourceGroupName="$AZURE_RESOURCE_GROUP"
 
 fi
