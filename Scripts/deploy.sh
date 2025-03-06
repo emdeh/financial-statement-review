@@ -3,6 +3,10 @@
 
 # Reference Infra scripts in teh Infra folder
 
+# Pre-check
+echo "Running pre-check"
+sh ./Infra/0_pre_check.sh
+
 # Deploy Resource Group
 echo "Deploying Resource Group"
 sh ./Infra/1_create_resource_group.sh
