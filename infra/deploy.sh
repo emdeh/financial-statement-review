@@ -12,8 +12,8 @@ echo "Deploying Resource Group"
 bash infra/scripts/1_create_rg.sh
 
 # Deploy Storage Account
-#echo "Deploying Storage Account"
-#sh ./infra/2_provision_blob_storage.sh
+echo "Deploying Storage Account"
+bash infra/scripts/2_provision_blob_storage.sh
 
 # Provision event grid
 #echo "Provisioning Event Grid"
