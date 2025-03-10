@@ -6,7 +6,9 @@ set -o pipefail  # Capture pipeline errors
 # Load environment variables before using them
 set -o allexport; source infra/.env; set +o allexport
 
-## TO DO: Bash script to provision blob storage + bicep template in resource_group.bicep
+# Validate required environment variables
+: "${AZURE_STORAGE_ACCOUNT_NAME:?Environment variable AZURE_STORAGE_ACCOUNT_NAME is required}"
+: "${AZURE_RESOURCE_GROUP:?Environment variable AZURE_RESOURCE_GROUP is required}"
 
 echo "🔹 Checking if Storage Account \"$AZURE_STORAGE_ACCOUNT_NAME\" exists..."
 
@@ -22,3 +24,5 @@ else
 fi
 
 echo "✅ Blob Account setup complete!"
+
+# infra/scripts/2_provision_blob_storage.sh
