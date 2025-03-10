@@ -27,3 +27,5 @@ fi
 # Retrieve and display the Function App's resource ID
 FUNCTION_APP_RESOURCE_ID=$(az functionapp show --name "$AZURE_FUNCTION_APP_NAME" --resource-group "$AZURE_RESOURCE_GROUP" --query "id" --output tsv)
 echo "✅ Azure Function App resource ID: $FUNCTION_APP_RESOURCE_ID"
+
+# infra/scripts/3_provision_function_.sh

@@ -19,3 +19,5 @@ az deployment group create \
     --parameters cognitiveServicesAccountName="$AZURE_COGNITIVE_SERVICES_ACCOUNT_NAME" location="$AZURE_LOCATION"
 
 echo "✅ Cognitive Services deployment complete!"
+
+# infra/scripts/6_provision_cognitive_services.sh

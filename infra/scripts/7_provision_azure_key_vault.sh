@@ -20,3 +20,5 @@ az deployment group create \
     --parameters keyVaultName="$AZURE_KEY_VAULT_NAME" location="$AZURE_LOCATION" tenantId="$AZURE_TENANT_ID"
 
 echo "✅ Azure Key Vault deployment complete!"
+
+# infra/scripts/7_provision_azure_key_vault.sh
