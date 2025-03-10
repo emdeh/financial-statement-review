@@ -3,8 +3,12 @@
 set -e  # Stop on first error
 set -o pipefail  # Capture pipeline errors
 
-# Load environment variables BEFORE using them
+# Load environment variables before using them
 set -o allexport; source infra/.env; set +o allexport
+
+# Validate required environment variables
+: "${AZURE_RESOURCE_GROUP:?Environment variable AZURE_RESOURCE_GROUP is required}"
+: "${AZURE_LOCATION:?Environment variable AZURE_LOCATION is required}"
 
 echo "🔹 Checking if Resource Group \"$AZURE_RESOURCE_GROUP\" exists..."
 
@@ -21,3 +25,5 @@ else
 fi
 
 echo "✅ Resource Group setup complete!"
+
+# infra/scripts/1_create_rg.sh

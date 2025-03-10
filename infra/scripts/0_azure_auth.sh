@@ -8,6 +8,9 @@ echo "🔹 Ensuring Azure authentication is correct..."
 # Load environment variables
 set -o allexport; source infra/.env; set +o allexport
 
+# Validate required envrionment variables
+: "${AZURE_SUBSCRIPTION_ID:?Environment variable AZURE_SUBSCRIPTION_ID is required}"
+
 # Force logout to ensure a clean authentication session
 echo "🔹 Logging out of Azure CLI to ensure fresh authentication..."
 az logout || true
@@ -29,3 +32,5 @@ fi
 echo "Using Subscription ID: $(az account show --query "id" --output tsv)"
 
 echo "✅ Azure authentication verified and correct subscription confirmed."
+
+# infra/scripts/0_azure_auth.sh
