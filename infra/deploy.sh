@@ -19,10 +19,18 @@ bash infra/scripts/2_provision_blob_storage.sh
 echo "Provisioning Function App"
 bash infra/scripts/3_provision_function.sh
 
+# Provision Function
+# echo "Provisioning Function"
+# TODO: Placeholder for function provisioning
+
 # Provision event grid
-#echo "Provisioning Event Grid"
-#bash infra/scripts/4_provision_event_grid.sh
-# TODO: Move the event grid provisioning after the function has been deployed
+# echo "Provisioning Event Grid"
+# bash infra/scripts/4_provision_event_grid.sh
+# TODO: Event Grid provisioning dependent on function being deployed.
+
+# Provision Cosmos DB
+echo "Provisioning Cosmos DB"
+bash infra/scripts/5_provision_cosmosdb.sh
 
 # Provision key vault
 # echo "Provisioning Key Vault"
