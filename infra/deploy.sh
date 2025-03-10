@@ -17,7 +17,7 @@ bash infra/scripts/2_provision_blob_storage.sh
 
 # Provision Function App
 echo "Provisioning Function App"
-bash infra/scripts/3_provision_function_app.sh
+bash infra/scripts/3_provision_function.sh
 
 # Provision event grid
 #echo "Provisioning Event Grid"

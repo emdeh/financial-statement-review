@@ -29,7 +29,7 @@ resource functionApp 'Microsoft.Web/sites@2021-02-01' = {
       appSettings: [
         {
           name: 'FUNCTIONS_WORKER_RUNTIME'
-          value: 'dotnet'   // change to 'node', 'python', etc. as needed
+          value: 'python'
         }
         {
           name: 'WEBSITE_RUN_FROM_PACKAGE'
