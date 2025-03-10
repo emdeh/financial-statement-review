@@ -21,7 +21,8 @@ bash infra/scripts/3_provision_function.sh
 
 # Provision event grid
 #echo "Provisioning Event Grid"
-#sh ./infra/3_provision_event_grid.sh
+#bash infra/scripts/4_provision_event_grid.sh
+# TODO: Move the event grid provisioning after the function has been deployed
 
 # Provision key vault
 # echo "Provisioning Key Vault"
