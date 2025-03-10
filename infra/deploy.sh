@@ -5,19 +5,19 @@
 
 # Pre-check
 echo "Running Azure Authentication"
-sh ./infra/0_azure_auth.sh
+bash infra/scripts/0_azure_auth.sh
 
 # Deploy Resource Group
-echo "Deploying Resource Group"
-sh ./infra/1_create_rg.sh
+#echo "Deploying Resource Group"
+#sh ./infra/1_create_rg.sh
 
 # Deploy Storage Account
-echo "Deploying Storage Account"
-sh ./infra/2_provision_blob_storage.sh
+#echo "Deploying Storage Account"
+#sh ./infra/2_provision_blob_storage.sh
 
 # Provision event grid
-echo "Provisioning Event Grid"
-sh ./infra/3_provision_event_grid.sh
+#echo "Provisioning Event Grid"
+#sh ./infra/3_provision_event_grid.sh
 
 # Provision key vault
 # echo "Provisioning Key Vault"
