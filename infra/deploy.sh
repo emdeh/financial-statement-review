@@ -32,6 +32,10 @@ bash infra/scripts/3_provision_function.sh
 echo "Provisioning Cosmos DB"
 bash infra/scripts/5_provision_cosmosdb.sh
 
+# Provision Cognitive Services
+echo "Provisioning Cognitive Services"
+bash infra/scripts/6_provision_cognitive_services.sh
+
 # Provision key vault
 # echo "Provisioning Key Vault"
 # sh ./infra/4_provision_azure_key_vault.sh
