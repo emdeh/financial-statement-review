@@ -8,8 +8,8 @@ echo "Running Azure Authentication"
 bash infra/scripts/0_azure_auth.sh
 
 # Deploy Resource Group
-#echo "Deploying Resource Group"
-#sh ./infra/1_create_rg.sh
+echo "Deploying Resource Group"
+bash infra/scripts/1_create_rg.sh
 
 # Deploy Storage Account
 #echo "Deploying Storage Account"

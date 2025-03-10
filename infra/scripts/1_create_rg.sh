@@ -10,11 +10,14 @@ set -o allexport; source infra/.env; set +o allexport
 : "${AZURE_RESOURCE_GROUP:?Environment variable AZURE_RESOURCE_GROUP is required}"
 : "${AZURE_LOCATION:?Environment variable AZURE_LOCATION is required}"
 
+# Check if the resource group exists
 echo "🔹 Checking if Resource Group \"$AZURE_RESOURCE_GROUP\" exists..."
 
-# Check if the resource group exists
+# If exists, skip creation
 if az group show --name "$AZURE_RESOURCE_GROUP" &>/dev/null; then
     echo "✅ Resource Group \"$AZURE_RESOURCE_GROUP\" already exists. Skipping creation."
+
+# If not exists, create it
 else
     echo "🔹 Resource Group \"$AZURE_RESOURCE_GROUP\" does not exist. Creating it now..."
     az deployment sub create \
