@@ -16,8 +16,8 @@ echo "Deploying Storage Account"
 sh ./infra/2_provision_blob_storage.sh
 
 # Provision event grid
-# echo "Provisioning Event Grid"
-# sh ./infra/3_provision_event_grid.sh
+echo "Provisioning Event Grid"
+sh ./infra/3_provision_event_grid.sh
 
 # Provision key vault
 # echo "Provisioning Key Vault"
