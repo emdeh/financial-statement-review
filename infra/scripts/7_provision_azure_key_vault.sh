@@ -12,10 +12,12 @@ set -o allexport; source infra/.env; set +o allexport
 : "${AZURE_KEY_VAULT_NAME:?Environment variable AZURE_KEY_VAULT_NAME is required}"
 : "${AZURE_TENANT_ID:?Environment variable AZURE_TENANT_ID is required}"
 
+echo "🔹 Checking if Azure Key Vault \"$AZURE_KEY_VAULT_NAME\" exists in Resource Group \"$AZURE_RESOURCE_GROUP\"..."
+
 # Check if the Key Vault exists
 if az keyvault show --name "$AZURE_KEY_VAULT_NAME" --resource-group "$AZURE_RESOURCE_GROUP" &>/dev/null; then
     echo "✅ Azure Key Vault \"$AZURE_KEY_VAULT_NAME\" already exists. Skipping creation."
-    exit 0
+
 else
 
     echo "🔹 Deploying Azure Key Vault \"$AZURE_KEY_VAULT_NAME\" in Resource Group \"$AZURE_RESOURCE_GROUP\"..."

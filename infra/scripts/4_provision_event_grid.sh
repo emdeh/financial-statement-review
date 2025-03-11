@@ -15,7 +15,6 @@ set -o allexport; source infra/.env; set +o allexport
 # Check if Event Grid subscription already exists
 if az eventgrid event-subscription show --name "$AZURE_EVENT_GRID_SUBSCRIPTION_NAME" --resource-group "$AZURE_RESOURCE_GROUP" --topic-name "$AZURE_STORAGE_ACCOUNT_NAME" &>/dev/null; then
     echo "✅ Event Grid Subscription \"$AZURE_EVENT_GRID_SUBSCRIPTION_NAME\" already exists. Skipping creation."
-    exit 0
 
 else
     # Retrieve the resource IDs for the Storage Account and the Function App
@@ -28,6 +27,7 @@ else
         --template-file "$(pwd)/infra/bicep/event_grid.bicep" \
         --parameters eventSubscriptionName="$AZURE_EVENT_GRID_SUBSCRIPTION_NAME" storageAccountName="$AZURE_STORAGE_ACCOUNT_NAME" azureFunctionResourceId="$FUNCTION_APP_RESOURCE_ID"
 fi
+
 echo "✅ Event Grid Subscription setup complete!"
 
 # infra/scripts/4_provision_event_grid.sh

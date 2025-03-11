@@ -23,6 +23,7 @@ if [ -z "$EXISTING_IDENTITY" ]; then
 else
     echo "✅ System-managed identity already assigned. Principal ID: $EXISTING_IDENTITY"
     ASSIGNED_IDENTITY="$EXISTING_IDENTITY"
+
 fi
 
 echo "🔹 Checking if Key Vault '$AZURE_KEY_VAULT_NAME' already has an access policy for the managed identity..."
@@ -36,6 +37,12 @@ if [[ "$ACCESS_POLICY" == "[]" ]]; then
       --object-id "$ASSIGNED_IDENTITY" \
       --secret-permissions get list
     echo "✅ Key Vault access policy updated for managed identity."
+
 else
     echo "✅ Key Vault already has an access policy for managed identity (Principal ID: $ASSIGNED_IDENTITY)."
+
 fi
+
+echo "✅ Managed identity configuration complete!"
+
+# infra/scripts/8_configure_managed_ids.sh
