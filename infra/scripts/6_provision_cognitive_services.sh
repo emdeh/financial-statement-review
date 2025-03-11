@@ -11,12 +11,17 @@ set -o allexport; source infra/.env; set +o allexport
 : "${AZURE_LOCATION:?Environment variable AZURE_LOCATION is required}"
 : "${AZURE_COGNITIVE_SERVICES_ACCOUNT_NAME:?Environment variable AZURE_COGNITIVE_SERVICES_ACCOUNT_NAME is required}"
 
-echo "🔹 Deploying Cognitive Services account \"$AZURE_COGNITIVE_SERVICES_ACCOUNT_NAME\" in Resource Group \"$AZURE_RESOURCE_GROUP\"..."
+# Chec if the Cognitive Services account exists
+if az cognitiveservices account show --name "$AZURE_COGNITIVE_SERVICES_ACCOUNT_NAME" --resource-group "$AZURE_RESOURCE_GROUP" &>/dev/null; then
+    echo "✅ Cognitive Services Account \"$AZURE_COGNITIVE_SERVICES_ACCOUNT_NAME\" already exists. Skipping creation."
+else
+    echo "🔹 Deploying Cognitive Services account \"$AZURE_COGNITIVE_SERVICES_ACCOUNT_NAME\" in Resource Group \"$AZURE_RESOURCE_GROUP\"..."
 
-az deployment group create \
-    --resource-group "$AZURE_RESOURCE_GROUP" \
-    --template-file "$(pwd)/infra/bicep/cognitive_services.bicep" \
-    --parameters cognitiveServicesAccountName="$AZURE_COGNITIVE_SERVICES_ACCOUNT_NAME" location="$AZURE_LOCATION"
+    az deployment group create \
+        --resource-group "$AZURE_RESOURCE_GROUP" \
+        --template-file "$(pwd)/infra/bicep/cognitive_services.bicep" \
+        --parameters cognitiveServicesAccountName="$AZURE_COGNITIVE_SERVICES_ACCOUNT_NAME" location="$AZURE_LOCATION"
+fi
 
 echo "✅ Cognitive Services deployment complete!"
 
