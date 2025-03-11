@@ -17,3 +17,15 @@ az provider show --namespace Microsoft.MachineLearningServices | grep registrati
 ```
 
 Ensure that the `"registrationState": "Registered"` is displayed in the output. This confirms that the resource provider is now registered.
+
+3. Install CLI Machine Learnign extension
+You may need to install the CLI Machine Learning extension for AML-related provisioning to function properly.
+
+If you're using Debian or Ubuntu, the fastest way to install the necessary CLI version and the Machine Learning extension is:
+
+```bash
+curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash 
+az extension add -n ml -y
+```
+
+For other environments check https://learn.microsoft.com/en-us/azure/machine-learning/how-to-configure-cli?view=azureml-api-2&tabs=public
