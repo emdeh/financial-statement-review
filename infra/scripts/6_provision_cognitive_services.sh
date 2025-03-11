@@ -11,7 +11,7 @@ set -o allexport; source infra/.env; set +o allexport
 : "${AZURE_LOCATION:?Environment variable AZURE_LOCATION is required}"
 : "${AZURE_COGNITIVE_SERVICES_ACCOUNT_NAME:?Environment variable AZURE_COGNITIVE_SERVICES_ACCOUNT_NAME is required}"
 
-# Chec if the Cognitive Services account exists
+# Check if the Cognitive Services account exists
 if az cognitiveservices account show --name "$AZURE_COGNITIVE_SERVICES_ACCOUNT_NAME" --resource-group "$AZURE_RESOURCE_GROUP" &>/dev/null; then
     echo "✅ Cognitive Services Account \"$AZURE_COGNITIVE_SERVICES_ACCOUNT_NAME\" already exists. Skipping creation."
 else

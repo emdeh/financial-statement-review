@@ -26,7 +26,7 @@ resource cognitiveServices 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
     networkAcls: {
       defaultAction: 'Deny'
     }
-    disableLocalAuth: true
+    disableLocalAuth: false
   }
 }
 

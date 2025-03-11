@@ -37,9 +37,9 @@ echo "Provisioning Cognitive Services"
 bash infra/scripts/6_provision_cognitive_services.sh
 
 # Provision key vault
-# echo "Provisioning Key Vault"
-# sh ./infra/4_provision_azure_key_vault.sh
+echo "Provisioning Key Vault"
+bash infra/scripts/7_provision_azure_key_vault.sh
 
 # Configure Managed Identity
-# echo "Configuring Managed Identity"
-# sh ./infra/5_configure_managed_ids.sh
+echo "Configuring Managed Identity"
+bash infra/scripts/8_configure_managed_ids.sh

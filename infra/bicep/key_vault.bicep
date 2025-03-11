@@ -12,7 +12,7 @@ param tenantId string
 @description('The SKU name for the Key Vault')
 param skuName string = 'standard'
 
-resource keyVault 'Microsoft.KeyVault/vaults@2021-10-01' = {
+resource keyVault 'Microsoft.KeyVault/vaults@2024-04-01-preview' = {
   name: keyVaultName
   location: location
   properties: {
@@ -21,7 +21,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2021-10-01' = {
       family: 'A'
       name: skuName
     }
-    accessPolicies: [] // You can populate with specific access policies if needed
+    accessPolicies: [] // Populate with specific access policies if needed
     enabledForDeployment: true
     enabledForDiskEncryption: true
     enabledForTemplateDeployment: true
