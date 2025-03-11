@@ -31,6 +31,9 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
 // Create the AML Workspace
 resource amlWorkspace 'Microsoft.MachineLearningServices/workspaces@2024-10-01' = {
   name: workspaceName
+  identity: {
+    type: 'SystemAssigned'
+  }
   location: location
   sku: {
     name: 'Basic'
@@ -42,14 +45,14 @@ resource amlWorkspace 'Microsoft.MachineLearningServices/workspaces@2024-10-01' 
     storageAccount: resourceId('Microsoft.Storage/storageAccounts', storageAccountName)
     applicationInsights: resourceId('Microsoft.Insights/components', appInsightsName)
   }
-  identity: {
-    type: 'SystemAssigned'
-  }
 }
 
 // Create the Online Endpoint
 resource onlineEndpoint 'Microsoft.MachineLearningServices/workspaces/onlineEndpoints@2024-10-01' = {
   parent: amlWorkspace
+  identity: {
+    type: 'SystemAssigned'
+  }
   name: endpointName
   location: location
   properties: {

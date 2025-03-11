@@ -17,22 +17,22 @@ set -o allexport; source infra/.env; set +o allexport
 
 echo "🔹 Checking if Document Classifier service \"$AZURE_DOCUMENT_CLASSIFIER_WORKSPACE_NAME\" exists..."
 
-# Check if the Document Classifier service exists
+## Check if the Document Classifier service exists
 if az ml workspace show --workspace-name "$AZURE_DOCUMENT_CLASSIFIER_WORKSPACE_NAME" &>/dev/null; then
     echo "✅ Document Classifier service \"$AZURE_DOCUMENT_CLASSIFIER_WORKSPACE_NAME\" already exists. Skipping creation."
 
 else
-    echo "🔹 Deploying Document Classifier service in AML workspace \"$AZURE_DOCUMENT_CLASSIFIER_WORKSPACE_NAME\"..."
+echo "🔹 Deploying Document Classifier service in AML workspace \"$AZURE_DOCUMENT_CLASSIFIER_WORKSPACE_NAME\"..."
 
-    az deployment group create \
-        --resource-group "$AZURE_RESOURCE_GROUP" \
-        --template-file "$(pwd)/infra/bicep/document_classifier.bicep" \
-        --parameters workspaceName="$AZURE_DOCUMENT_CLASSIFIER_WORKSPACE_NAME" \
-                    endpointName="$AZURE_DOCUMENT_CLASSIFIER_ENDPOINT_NAME" \
-                    location="$AZURE_LOCATION" \
-                    keyVaultName="$AZURE_KEY_VAULT_NAME" \
-                    storageAccountName="$AZURE_STORAGE_ACCOUNT_NAME" \
-                    appInsightsName="$AZURE_APP_INSIGHTS_NAME"
+az deployment group create \
+    --resource-group "$AZURE_RESOURCE_GROUP" \
+    --template-file "$(pwd)/infra/bicep/document_classifier.bicep" \
+    --parameters workspaceName="$AZURE_DOCUMENT_CLASSIFIER_WORKSPACE_NAME" \
+                endpointName="$AZURE_DOCUMENT_CLASSIFIER_ENDPOINT_NAME" \
+                location="$AZURE_LOCATION" \
+                keyVaultName="$AZURE_KEY_VAULT_NAME" \
+                storageAccountName="$AZURE_STORAGE_ACCOUNT_NAME" \
+                appInsightsName="$AZURE_APP_INSIGHTS_NAME"
 fi
 
 echo "✅ Document Classifier service deployed successfully!"
