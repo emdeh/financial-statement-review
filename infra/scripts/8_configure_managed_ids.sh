@@ -20,6 +20,7 @@ if [ -z "$EXISTING_IDENTITY" ]; then
     echo "🔹 No system-managed identity found. Assigning one..."
     ASSIGNED_IDENTITY=$(az functionapp identity assign --name "$AZURE_FUNCTION_APP_NAME" --resource-group "$AZURE_RESOURCE_GROUP" --query principalId --output tsv)
     echo "✅ Managed identity assigned. Principal ID: $ASSIGNED_IDENTITY"
+
 else
     echo "✅ System-managed identity already assigned. Principal ID: $EXISTING_IDENTITY"
     ASSIGNED_IDENTITY="$EXISTING_IDENTITY"

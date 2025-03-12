@@ -1,6 +1,10 @@
+#!/bin/bash
+
+# Stop on first error
+set -euo pipefail
+
 # Bash script to deploy Azure resources
 # This script will call individual scripts to enahnce modularity
-
 # Reference scripts in the infra/ folder
 
 # Pre-check
@@ -45,6 +49,8 @@ echo "Configuring Managed Identity"
 bash infra/scripts/8_configure_managed_ids.sh
 
 # Provision Document Classifier
-echo "Provisioning Document Classifier"
-bash infra/scripts/9_provision_document_classifier.sh
+echo "Provisioning Azure Machine Learning Workspace"
+bash infra/scripts/9_provision_aml_workspace.sh
 
+# Complete message
+echo "Azure resources deployed successfully!"

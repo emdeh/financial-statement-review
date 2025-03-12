@@ -16,6 +16,7 @@ echo "🔹 Checking if Azure Function App \"$AZURE_FUNCTION_APP_NAME\" exists in
 # Check if the Function App exists
 if az functionapp show --name "$AZURE_FUNCTION_APP_NAME" --resource-group "$AZURE_RESOURCE_GROUP" &>/dev/null; then
     echo "✅ Azure Function App \"$AZURE_FUNCTION_APP_NAME\" already exists. Skipping creation."
+
 else
     echo "🔹 Azure Function App \"$AZURE_FUNCTION_APP_NAME\" does not exist. Creating it now..."
     az deployment group create \

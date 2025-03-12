@@ -26,7 +26,7 @@ else
 
     az deployment group create \
         --resource-group "$AZURE_RESOURCE_GROUP" \
-        --template-file "$(pwd)/infra/bicep/document_classifier.bicep" \
+        --template-file "$(pwd)/infra/bicep/aml_workspace.bicep" \
         --parameters workspaceName="$AZURE_DOCUMENT_CLASSIFIER_WORKSPACE_NAME" \
                     endpointName="$AZURE_DOCUMENT_CLASSIFIER_ENDPOINT_NAME" \
                     location="$AZURE_LOCATION" \

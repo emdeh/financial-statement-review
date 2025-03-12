@@ -47,6 +47,7 @@ resource amlWorkspace 'Microsoft.MachineLearningServices/workspaces@2024-10-01' 
   }
 }
 
+/*
 // Create the Online Endpoint
 resource onlineEndpoint 'Microsoft.MachineLearningServices/workspaces/onlineEndpoints@2024-10-01' = {
   parent: amlWorkspace
@@ -62,7 +63,7 @@ resource onlineEndpoint 'Microsoft.MachineLearningServices/workspaces/onlineEndp
     // Additional properties (like deployment configuration) can be added as needed
   }
 }
-
+*/
 output amlWorkspaceId string = amlWorkspace.id
-output onlineEndpointId string = onlineEndpoint.id
+//output onlineEndpointId string = onlineEndpoint.id
 output appInsightsId string = appInsights.id
