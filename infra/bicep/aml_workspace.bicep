@@ -3,8 +3,8 @@ targetScope = 'resourceGroup'
 @description('The name of the AML Workspace for the Document Classifier')
 param workspaceName string
 
-@description('The name of the online endpoint for the Document Classifier')
-param endpointName string
+//@description('The name of the online endpoint for the Document Classifier')
+//param endpointName string
 
 @description('Location for the resources')
 param location string = resourceGroup().location
