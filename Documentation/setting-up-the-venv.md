@@ -1,6 +1,6 @@
 ## Setting Up a Python Virtual Environment
 
-### 1. Create the Virtual Environment
+### 1. Create the Primary Virtual Environment
 Run the following command in your project root:
 ```bash
 python -m venv venv
@@ -27,3 +27,11 @@ When you're done, simply run:
 deactivate
 ```
 This will return you to the global Python environment.
+
+### 2. Create teh Azure Functions Virtual environment
+From within `AzureFunctions/` create a second venv:
+```bash
+python -m venv venv-AzureFunction
+```
+
+Consider activating this in a seperate terminal

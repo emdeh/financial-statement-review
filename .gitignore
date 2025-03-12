@@ -7,6 +7,7 @@ __pycache__/
 venv/
 env/
 .venv/
+venv-*/
 
 # Anaconda environments (if applicable)
 *.conda
@@ -52,3 +53,5 @@ secret*.json
 
 # Miscellaneous
 *.bak
+
+.python_packages
