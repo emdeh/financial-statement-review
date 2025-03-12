@@ -15,6 +15,7 @@ echo "🔹 Checking if Storage Account \"$AZURE_STORAGE_ACCOUNT_NAME\" exists...
 # Check if the storage account exists
 if az storage account check-name --name "$AZURE_STORAGE_ACCOUNT_NAME" --query "nameAvailable" --output tsv | grep -q 'false'; then
     echo "🔹 Storage Account \"$AZURE_STORAGE_ACCOUNT_NAME\" already exists. Skipping creation."
+
 else
     echo "🔹 Storage Account \"$AZURE_STORAGE_ACCOUNT_NAME\" does not exist. Creating..."
     az deployment group create \
