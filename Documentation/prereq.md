@@ -51,3 +51,4 @@ Provide the name of the storage connection setting (commonly AzureWebJobsStorage
 Configure Local Settings:
 
 In the local.settings.json file, ensure you have the connection string for your Storage Account under the key AzureWebJobsStorage.
+

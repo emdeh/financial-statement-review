@@ -35,3 +35,5 @@ python -m venv venv-AzureFunction
 ```
 
 Consider activating this in a seperate terminal
+
+Set up mutli-root workspace
