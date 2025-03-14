@@ -1,13 +1,5 @@
-# Main processing logic
 import logging
-import azure.functions as func
 
-
-app = func.FunctionApp()
-
-@app.blob_trigger(arg_name="myblob", path="pdf-uploads/{name}",
-                               connection="ca9ed4_STORAGE") 
-def ProcessPDFBlob(myblob: func.InputStream):
-    logging.info(f"Python blob trigger function processed blob"
-                f"Name: {myblob.name}"
-                f"Blob Size: {myblob.length} bytes")
+def main(myblob: bytes, name: str):
+    logging.info(f"Blob trigger function processed blob\nName: {name}\nSize: {len(myblob)} bytes")
+    # You can access metadata via additional parameters if defined in function.json.
