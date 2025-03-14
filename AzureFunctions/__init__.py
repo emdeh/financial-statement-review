@@ -1,1 +1,4 @@
-# Azure Function entry point
+"""
+__init__.py
+Initialization code for the Azure Function.
+"""

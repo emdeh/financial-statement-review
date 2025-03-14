@@ -1,4 +1,5 @@
 """
+    main.py
     Main entry point for the Azure Function.
     This function is triggered by a blob trigger and logs the name and size of the blob.
 """

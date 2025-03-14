@@ -1,4 +1,5 @@
 """
+    services/ocr_service.py
     Module for OCR service to extract text from blob data using Cognitive Services OCR API.
 
     Classes:
