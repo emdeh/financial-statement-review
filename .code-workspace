@@ -1,0 +1,14 @@
+{
+	"folders": [
+	  {
+		"name": "ProjectRoot",
+		"path": "."
+	  },
+	  {
+		"name": "AzureFunctions",
+		"path": "AzureFunctions"
+	  }
+	],
+	"settings": {}
+  }
+  
