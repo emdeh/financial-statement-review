@@ -27,4 +27,3 @@ class OcrService:
 
         # Replace  with an actual call to the Cognitive Services OCR API.
         return "Dummy extracted text from PDF."
-        

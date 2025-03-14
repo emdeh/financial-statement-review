@@ -21,6 +21,7 @@ class ClassificationService:
         Returns:
             dict: The classification result containing the classification and confidence.
         """
-        
+
         # Replace this with an actual call to your ML endpoint.
         return {"isAFS": True, "confidence": 0.95}
+        

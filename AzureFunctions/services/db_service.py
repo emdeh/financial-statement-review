@@ -5,7 +5,6 @@ Classes:
     DbService: A service class to handle database operations.
 
 """
-import os
 
 class DbService:
     """
@@ -24,5 +23,3 @@ class DbService:
             data (dict): The classification result to be stored.
         """
         # Replace this with an actual call to your database.
-        pass
-    
