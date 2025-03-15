@@ -24,17 +24,17 @@ This solution will streamline the review process, reduce manual effort, and lay 
 │   └── architecture-diagram.png            # //TODO
 │
 ├── AzureFunctions/
-│   ├── __init__.py                         # Azure Function entry point
-│   ├── function.json                       # Function configuration
 │   ├── host.json
 │   ├── local.settings.json
-│   ├── main.py                             # Main processing logic
 │   ├── requirements.txt                    # Function-specific dependencies
+│   ├── ProcessPDF/
+│   │   ├── main.py                         # Main processing logic
+│   │   └── function.json                   # Function configuration
 │   └── services/
 │       ├── __init__.py                     
 │       ├── classification_service.py            
-│       ├── db_service.py                   # Main processing logic (or separate modules)
-│       └── ocr_service.py                  # Main processing logic (or separate modules)
+│       ├── db_service.py                   
+│       └── ocr_service.py                  
 │
 ├── Models/
 │   ├── Classification/
