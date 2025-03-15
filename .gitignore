@@ -29,6 +29,7 @@ pip-wheel-metadata/
 local.settings.json   # local config that contains secrets
 .azurefunctions/      # Azure Functions build output
 host.json             # if not necessary for production
+azurite_workspace/    # Azurite emulator data
 
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints/

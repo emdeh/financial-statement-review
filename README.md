@@ -20,6 +20,7 @@ This solution will streamline the review process, reduce manual effort, and lay 
 │   ├── setting-up-the-venv.md
 │   ├── solution-brief.md
 │   ├── system-flow-overview.md
+│   ├── local-testing-storage.md
 │   └── architecture-diagram.png            # //TODO
 │
 ├── AzureFunctions/
