@@ -5,12 +5,13 @@
 """
 
 import logging
+import azure.functions as func
 
-def main(myblob: bytes, name: str):
+def main(myblob: func.InputStream):
     """
     Main entry point for the Azure Function.
     """
-    logging.info(
-        "Blob trigger function processed blob\nName: %s\nSize: %d bytes",
-         name, len(myblob))
+    logging.info("Blob trigger function processed blob")
+    logging.info("Name: %s", myblob.name)
+    #logging.info("Size: %d bytes", myblob.length)
     # You can access metadata via additional parameters if defined in function.json.
