@@ -13,5 +13,4 @@ def main(myblob: func.InputStream):
     """
     logging.info("Blob trigger function processed blob")
     logging.info("Name: %s", myblob.name)
-    #logging.info("Size: %d bytes", myblob.length)
     # You can access metadata via additional parameters if defined in function.json.
