@@ -36,9 +36,9 @@ bash infra/scripts/1_create_rg.sh
 # echo "Provisioning Cosmos DB"
 # bash infra/scripts/5_provision_cosmosdb.sh
 
-# Provision Cognitive Services
-echo "Provisioning Cognitive Services"
-bash infra/scripts/6_provision_cognitive_services.sh
+# Provision Computer Vision
+echo "Provisioning Computer Vision"
+bash infra/scripts/6_provision_computer_vision.sh
 
 # Provision key vault
 # echo "Provisioning Key Vault"

@@ -3,10 +3,10 @@
 set -e  # Stop on first error
 set -o pipefail  # Capture pipeline errors
 
-echo "🔹 Ensuring Azure authentication is correct..."
-
 # Load environment variables
 set -o allexport; source infra/.env; set +o allexport
+
+echo "🔹 Ensuring Azure authentication is correct..."
 
 # Validate required environment variables
 : "${AZURE_SUBSCRIPTION_ID:?Environment variable AZURE_SUBSCRIPTION_ID is required}"
