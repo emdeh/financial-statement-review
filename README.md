@@ -15,6 +15,7 @@ This solution will streamline the review process, reduce manual effort, and lay 
 
 ```bash
 ├── Documentation/
+│   ├── decompile-arm-templates.md
 │   ├── prereq.md
 │   ├── resource-overview.md
 │   ├── setting-up-the-venv.md
