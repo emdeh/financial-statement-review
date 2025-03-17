@@ -59,27 +59,28 @@ def main(myblob: func.InputStream):
     with tracer.span(name="ProcessPDFOperation") as span:
         # Log the beginning of the blob processing operation, including extra context.
         logger.info("Blob trigger function processed %s", myblob.name, extra={"blob_name": myblob.name})
-        logger.info("Processing blob size %s", myblob.length, extra={"blob_size": myblob.length})
+        #logger.info("Processing blob size %s", myblob.length, extra={"blob_size": myblob.length})
 
-        # (Insert your processing logic here)
-        # Simulate reading the blob content (PDF bytes)
+        # Read blob content (PDF bytes)
         pdf_bytes = myblob.read()
 
         # OCR extraction
         try:
             ocr_result = OcrService().extract_text(pdf_bytes)
             logger.info("OCR extraction complete", extra={"extracted_text": ocr_result})
+            logger.info("OCR output length is %s", len(ocr_result))
 
             if is_debug_mode():
                 # Write the extracted text to a debug file
-                logger.info("OCR output length is %s", len(ocr_result))
                 debug_file_path = write_debug_file(ocr_result, prefix="ocr_output")
                 logger.info("OCR output written to debug file", extra={"debug_file": debug_file_path})
 
         except OcrServiceError as e:
             logger.error("Error extracting text from PDF", extra={"error": str(e)})
             return
-            # Continue processing (e.g., parse text, send to ML, etc)
+        
+        logger.info("Continue processing...")
+        # Continue processing (e.g., parse text, send to ML, etc)
 
         # Simulate ML model classification
         classification_result = simulate_ml_classification(ocr_result)
