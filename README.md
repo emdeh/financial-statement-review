@@ -15,15 +15,30 @@ This solution will streamline the review process, reduce manual effort, and lay 
 
 ```bash
 ├── Documentation/
+│   ├── prereq.md
+│   ├── resource-overview.md
+│   ├── setting-up-the-venv.md
 │   ├── solution-brief.md
-│   └── architecture-diagram.png            # (Optional: visual diagrams) //TODO
+│   ├── system-flow-overview.md
+│   ├── local-testing-storage.md
+│   └── architecture-diagram.png            # //TODO
 │
 ├── AzureFunctions/
-│   └── DocumentProcessingFunction/
-│       ├── __init__.py                     # Azure Function entry point
-│       ├── function.json                   # Function configuration
-│       ├── main.py                         # Main processing logic (or separate modules)
-│       └── requirements.txt                # Function-specific dependencies
+│   ├── host.json
+│   ├── local.settings.json
+│   ├── requirements.txt                    # Function-specific dependencies
+│   │
+│   ├── ProcessPDF/
+│   │   ├── main.py                         # Main processing logic
+│   │   └── function.json                   # Function configuration
+│   │
+│   └── services/
+│       ├── __init__.py
+│       ├── logger.py
+│       ├── tracer.py                     
+│       ├── classification_service.py            
+│       ├── db_service.py                   
+│       └── ocr_service.py                  
 │
 ├── Models/
 │   ├── Classification/
@@ -53,5 +68,6 @@ This solution will streamline the review process, reduce manual effort, and lay 
 │
 ├── .gitignore                              # Ignore file (Python, VS Code, Azure Functions, etc.)
 ├── README.md                               # High-level project overview and instructions
+├── .code-workspace                         # See .venv setup instructions in Documentation/
 └── requirements.txt                        # Global dependencies (if applicable)
 ```

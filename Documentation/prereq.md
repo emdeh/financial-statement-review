@@ -29,3 +29,26 @@ az extension add -n ml -y
 ```
 
 For other environments check https://learn.microsoft.com/en-us/azure/machine-learning/how-to-configure-cli?view=azureml-api-2&tabs=public
+
+# Azure Function extension
+
+Install the Azure Functions Extension:
+
+Open VS Code.
+Install the Azure Functions extension if you haven’t already.
+Create a New Project:
+
+Open the Command Palette (Ctrl+Shift+P on Windows/Linux or Cmd+Shift+P on macOS) and run:
+sql
+Copy
+Azure Functions: Create New Project...
+Choose a folder for your project.
+Select your preferred language (e.g. JavaScript, Python, or C#).
+When prompted for a template, choose Blob Trigger.
+Enter a function name (e.g. ProcessPDFBlob).
+Set the Blob path to point to your Storage Account container (for example, pdf-uploads/{name}).
+Provide the name of the storage connection setting (commonly AzureWebJobsStorage).
+Configure Local Settings:
+
+In the local.settings.json file, ensure you have the connection string for your Storage Account under the key AzureWebJobsStorage.
+

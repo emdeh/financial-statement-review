@@ -1,1 +1,0 @@
-# Azure Function entry point
