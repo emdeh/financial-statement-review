@@ -29,6 +29,7 @@ tracer = AppTracer(instrumentation_key)
 def simulate_ocr(pdf_bytes):
     """
     Simulates OCR processing on a PDF document.
+    
     """
     return "Extracted text from PDF. This is a simulated OCR output."
 
