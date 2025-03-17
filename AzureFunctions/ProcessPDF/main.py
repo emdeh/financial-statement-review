@@ -39,14 +39,14 @@ def simulate_ml_classification(text):
     return {
         "is_valid_afs": True,
         "confidence": 0.95,
-        "message": "The document is valid and meets the AFS requirements."
+        "ml_message": "The document is valid and meets the AFS requirements."
     }
 
 def simulate_write_to_db(result):
     """
     Simulates writing the classification result to a database.
     """
-    return {"status:": "Success", "message": "Simulate write succssful."}
+    return {"status:": "Success", "db_message": "Simulate write succssful."}
 
 def main(myblob: func.InputStream):
     """
