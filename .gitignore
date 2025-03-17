@@ -58,3 +58,5 @@ local.settings.json
 *.bak
 
 .python_packages
+
+debug/

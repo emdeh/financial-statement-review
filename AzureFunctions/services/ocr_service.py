@@ -124,7 +124,7 @@ class OcrService:
             str: Concatenated text extracted from the document.
         """
         extracted_lines = []
-        analyze_result = result_json.get("analyseResult", {})
+        analyze_result = result_json.get("analyzeResult", {})
         read_results = analyze_result.get("readResults", [])
         for page in read_results:
             for line in page.get("lines", []):

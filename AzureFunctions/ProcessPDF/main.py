@@ -13,6 +13,7 @@ import azure.functions as func
 from services.logger import Logger
 from services.tracer import AppTracer
 from services.ocr_service import OcrService, OcrServiceError
+from services.debug_utils import write_debug_file, is_debug_mode
 
 # Initialise the JSON logger for this function
 logger = Logger.get_logger("ProcessPDF", json_format=True)
@@ -57,8 +58,8 @@ def main(myblob: func.InputStream):
     """
     with tracer.span(name="ProcessPDFOperation") as span:
         # Log the beginning of the blob processing operation, including extra context.
-        logger.info("Blob trigger function processed blob", extra={"blob_name": myblob.name})
-        logger.info("Processing blob size", extra={"blob_size": myblob.length})
+        logger.info("Blob trigger function processed %s", myblob.name, extra={"blob_name": myblob.name})
+        logger.info("Processing blob size %s", myblob.length, extra={"blob_size": myblob.length})
 
         # (Insert your processing logic here)
         # Simulate reading the blob content (PDF bytes)
@@ -68,6 +69,13 @@ def main(myblob: func.InputStream):
         try:
             ocr_result = OcrService().extract_text(pdf_bytes)
             logger.info("OCR extraction complete", extra={"extracted_text": ocr_result})
+
+            if is_debug_mode():
+                # Write the extracted text to a debug file
+                logger.info("OCR output length is %s", len(ocr_result))
+                debug_file_path = write_debug_file(ocr_result, prefix="ocr_output")
+                logger.info("OCR output written to debug file", extra={"debug_file": debug_file_path})
+
         except OcrServiceError as e:
             logger.error("Error extracting text from PDF", extra={"error": str(e)})
             return
