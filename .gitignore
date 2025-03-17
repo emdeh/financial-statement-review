@@ -52,6 +52,7 @@ Desktop.ini
 .env
 secret*.json
 **/local.settings.json
+local.settings.json
 
 # Miscellaneous
 *.bak
