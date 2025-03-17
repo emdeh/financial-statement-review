@@ -59,8 +59,10 @@ def main(myblob: func.InputStream):
     """
     with tracer.span(name="ProcessPDFOperation") as span:
         # Log the beginning of the blob processing operation, including extra context.
-        logger.info("Blob trigger function processed %s", myblob.name, extra={"blob_name": myblob.name})
-        #logger.info("Processing blob size %s", myblob.length, extra={"blob_size": myblob.length})
+        logger.info("Blob trigger function processed %s", myblob.name,
+        extra={
+            "blob_name": myblob.name
+            })
 
         # Read blob content (PDF bytes)
         pdf_bytes = myblob.read()
@@ -70,7 +72,12 @@ def main(myblob: func.InputStream):
 
         if embedded_text:
             extraction_method = "embedded"
-            logger.info("Extraction complete using %s method",extraction_method, extra={"method": extraction_method, "extracted_text": embedded_text})
+            logger.info("Extraction complete using %s method",extraction_method,
+            extra={
+                "method": extraction_method,
+                "extracted_text": embedded_text
+                })
+
             logger.info("Extraction output length is %s", len(embedded_text))
             ocr_result = embedded_text
 
@@ -81,17 +88,29 @@ def main(myblob: func.InputStream):
             # Extract using OCR
             try:
                 ocr_result = OcrService().extract_text(pdf_bytes)
-                logger.info("Extraction complete using %s method", extraction_method, extra={"method": extraction_method, "extracted_text": ocr_result})
+                logger.info("Extraction complete using %s method", extraction_method,
+                extra={
+                    "method": extraction_method,
+                    "extracted_text": ocr_result
+                    })
+
                 logger.info("Extraction output length is %s", len(ocr_result))
 
             except OcrServiceError as e:
-                logger.error("Error extracting text from PDF using %s", extraction_method, extra={"error": str(e)})
+                logger.error("Error extracting text from PDF using %s", extraction_method,
+                extra={
+                    "error": str(e)
+                    })
                 return
 
         if is_debug_mode():
             # Write the extracted text to a debug file
             debug_file = write_debug_file(ocr_result, prefix="ocr_output")
-            logger.info("Debug file written", extra={"method": extraction_method,"debug_file": debug_file})
+            logger.info("DEBUG ON - Debug file written",
+            extra={
+                "method": extraction_method,
+                "debug_file": debug_file
+                })
             logger.info("Extraction method used was %s", extraction_method)
 
         logger.info("Continue processing...")
