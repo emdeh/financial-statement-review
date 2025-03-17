@@ -51,8 +51,12 @@ Desktop.ini
 # Other sensitive files
 .env
 secret*.json
+**/local.settings.json
+local.settings.json
 
 # Miscellaneous
 *.bak
 
 .python_packages
+
+debug/

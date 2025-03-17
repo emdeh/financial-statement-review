@@ -15,6 +15,7 @@ This solution will streamline the review process, reduce manual effort, and lay 
 
 ```bash
 ├── Documentation/
+│   ├── decompile-arm-templates.md
 │   ├── prereq.md
 │   ├── resource-overview.md
 │   ├── setting-up-the-venv.md
@@ -25,7 +26,7 @@ This solution will streamline the review process, reduce manual effort, and lay 
 │
 ├── AzureFunctions/
 │   ├── host.json
-│   ├── local.settings.json
+│   ├── local.settings.json                 # For local dev, see example below
 │   ├── requirements.txt                    # Function-specific dependencies
 │   │
 │   ├── ProcessPDF/
@@ -71,3 +72,23 @@ This solution will streamline the review process, reduce manual effort, and lay 
 ├── .code-workspace                         # See .venv setup instructions in Documentation/
 └── requirements.txt                        # Global dependencies (if applicable)
 ```
+
+## `local.settings.json` Example
+Here is an example of what you need in your local settings
+
+```json
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "python",
+    "DEBUG_MODE": "<False or True>",
+    "APPINSIGHTS_INSTRUMENTATIONKEY": "11111111-1111-1111-1111-111111111111",
+    "COMPUTER_VISION_ENDPOINT": "<your endpoint>",
+    "COMPUTER_VISION_KEY": "<your key>"
+  }
+}
+
+```
+
+Note that `APPINSIGHTS_INSTRUMENTATIONKEY` needs to emulate an actual key GUID.
