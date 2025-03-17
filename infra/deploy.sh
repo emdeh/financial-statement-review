@@ -16,12 +16,12 @@ echo "Deploying Resource Group"
 bash infra/scripts/1_create_rg.sh
 
 # Deploy Storage Account
-echo "Deploying Storage Account"
-bash infra/scripts/2_provision_blob_storage.sh
+# echo "Deploying Storage Account"
+# bash infra/scripts/2_provision_blob_storage.sh
 
 # Provision Function App
-echo "Provisioning Function App"
-bash infra/scripts/3_provision_function.sh
+# echo "Provisioning Function App"
+# bash infra/scripts/3_provision_function.sh
 
 # Provision Function
 # echo "Provisioning Function"
@@ -33,24 +33,24 @@ bash infra/scripts/3_provision_function.sh
 # TODO: Event Grid provisioning dependent on function being deployed.
 
 # Provision Cosmos DB
-echo "Provisioning Cosmos DB"
-bash infra/scripts/5_provision_cosmosdb.sh
+# echo "Provisioning Cosmos DB"
+# bash infra/scripts/5_provision_cosmosdb.sh
 
 # Provision Cognitive Services
 echo "Provisioning Cognitive Services"
 bash infra/scripts/6_provision_cognitive_services.sh
 
 # Provision key vault
-echo "Provisioning Key Vault"
-bash infra/scripts/7_provision_azure_key_vault.sh
+# echo "Provisioning Key Vault"
+# bash infra/scripts/7_provision_azure_key_vault.sh
 
 # Configure Managed Identity
-echo "Configuring Managed Identity"
-bash infra/scripts/8_configure_managed_ids.sh
+# echo "Configuring Managed Identity"
+# bash infra/scripts/8_configure_managed_ids.sh
 
 # Provision Document Classifier
-echo "Provisioning Azure Machine Learning Workspace"
-bash infra/scripts/9_provision_aml_workspace.sh
+# echo "Provisioning Azure Machine Learning Workspace"
+# bash infra/scripts/9_provision_aml_workspace.sh
 
 # Complete message
 echo "Azure resources deployed successfully!"

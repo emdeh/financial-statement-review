@@ -20,7 +20,7 @@ resource cognitiveServices 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
   sku: {
     name: skuName
   }
-  kind: 'AIServices'
+  kind: 'ComputerVision'
   properties: {
     publicNetworkAccess: 'Disabled'
     networkAcls: {
