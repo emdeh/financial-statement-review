@@ -51,6 +51,7 @@ Desktop.ini
 # Other sensitive files
 .env
 secret*.json
+local.settings.json
 
 # Miscellaneous
 *.bak
