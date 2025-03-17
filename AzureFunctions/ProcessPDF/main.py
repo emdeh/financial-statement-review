@@ -13,7 +13,10 @@ from services.tracer import AppTracer
 logger = Logger.get_logger("ProcessPDF", json_format=True)
 
 # Retrieve the Application Insights instrumentation key from an environment variable
-instrumentation_key = os.environ.get("APPINSIGHTS_INSTRUMENTATIONKEY", "your_instrumentation_key_here")
+instrumentation_key = os.environ.get(
+    "APPINSIGHTS_INSTRUMENTATIONKEY",
+    "your_instrumentation_key_here"
+    )
 
 # Initialise the tracer with the instrumentation key
 tracer = AppTracer(instrumentation_key)

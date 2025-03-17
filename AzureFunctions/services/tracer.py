@@ -6,11 +6,13 @@
 from opencensus.trace import config_integration
 from opencensus.trace.samplers import ProbabilitySampler
 from opencensus.ext.azure.trace_exporter import AzureExporter
-from opencensus.trace.tracer import Tracer as OCTTracer # Alias to avoid conflict with built-in tracer
+from opencensus.trace.tracer import Tracer as OCTTracer
+    # Alias to avoid conflict with built-in tracer
 
 class AppTracer:
     """
-    AppTracer is a wrapper for the OpenCensus tracer configured to export data to Application Insights.
+    AppTracer is a wrapper for the OpenCensus tracer configured to export data 
+    to Application Insights.
     """
 
     def __init__(self, instrumentation_key, sampler_rate=1.0):
@@ -21,7 +23,8 @@ class AppTracer:
             instrumentation_key (str): Your Application Insights instrumentation key.
             sampler_rate (float): Sampling rate (1.0 means 100% of traces are sampled).
         """
-        # Enable integration with the logging library so that log records can include trace information.
+        # Enable integration with the logging library so that log records can include
+        # trace information.
         config_integration.trace_integrations(['logging'])
 
         self.tracer = OCTTracer(

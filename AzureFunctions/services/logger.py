@@ -45,7 +45,9 @@ class Logger:
             if json_format:
                 if jsonlogger is None:
                     raise ImportError("jsonlogger is required for JSON logging.")
-                formatter = jsonlogger.JsonFormatter('%(asctime)s %(name)s %(levelname)s %(message)s')
+                formatter = jsonlogger.JsonFormatter(
+                    '%(asctime)s %(name)s %(levelname)s %(message)s'
+                    )
             else:
                 formatter = logging.Formatter(
                     '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
