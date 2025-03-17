@@ -27,11 +27,15 @@ This solution will streamline the review process, reduce manual effort, and lay 
 │   ├── host.json
 │   ├── local.settings.json
 │   ├── requirements.txt                    # Function-specific dependencies
+│   │
 │   ├── ProcessPDF/
 │   │   ├── main.py                         # Main processing logic
 │   │   └── function.json                   # Function configuration
+│   │
 │   └── services/
-│       ├── __init__.py                     
+│       ├── __init__.py
+│       ├── logger.py
+│       ├── tracer.py                     
 │       ├── classification_service.py            
 │       ├── db_service.py                   
 │       └── ocr_service.py                  

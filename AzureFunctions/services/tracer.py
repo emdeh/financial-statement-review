@@ -1,6 +1,18 @@
 """
-    services/tracer.py
-    Module to set up and configure OpenCensus tracing for Application Insights.
+    Relative location: services/tracer.py
+
+    This module provides the `AppTracer` class, which is a wrapper for the OpenCensus 
+    tracer configured to export trace data to Application Insights. It allows for 
+    integration with the logging library and supports customisable sampling rates.
+    
+    Classes:
+        AppTracer: A wrapper for the OpenCensus tracer configured to export data to 
+                   Application Insights.
+
+    Usage example:
+        tracer = AppTracer(instrumentation_key='your_instrumentation_key')
+        with tracer.span('example_span'):
+            # Your traced code here
 """
 
 from opencensus.trace import config_integration
@@ -11,8 +23,18 @@ from opencensus.trace.tracer import Tracer as OCTTracer
 
 class AppTracer:
     """
-    AppTracer is a wrapper for the OpenCensus tracer configured to export data 
-    to Application Insights.
+    A class used to create and manage tracing spans for application performance monitoring.
+    The AppTracer class integrates with Azure Application Insights to provide tracing capabilities.
+    It allows you to create tracing spans which can be used to monitor the performance and 
+    diagnose issues within your application.
+
+    Attributes:
+        tracer (OCTTracer): The tracer object used to create and manage spans.
+        
+    Methods:
+        __init__(instrumentation_key, sampler_rate=1.0):
+            Initializes the AppTracer with the given instrumentation key and sampler rate.
+        span(name):
     """
 
     def __init__(self, instrumentation_key, sampler_rate=1.0):
@@ -23,8 +45,6 @@ class AppTracer:
             instrumentation_key (str): Your Application Insights instrumentation key.
             sampler_rate (float): Sampling rate (1.0 means 100% of traces are sampled).
         """
-        # Enable integration with the logging library so that log records can include
-        # trace information.
         config_integration.trace_integrations(['logging'])
 
         self.tracer = OCTTracer(

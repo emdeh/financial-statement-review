@@ -1,9 +1,13 @@
 """
-    ProcessPDF/main.py
-    Main entry point for the Azure Function.
-    This function is triggered by a blob trigger and logs the name and size of the blob.
-"""
+    Relative location: ProcessPDF/main.py
+    Main entry point for the Azure Function triggered by a blob upload.
 
+    This function processes the uploaded blob, logs relevant information, and
+    traces the operation using Application Insights.
+
+    Args:
+        myblob (func.InputStream): The input blob stream that triggered the function.
+"""
 import os
 import azure.functions as func
 from services.logger import Logger

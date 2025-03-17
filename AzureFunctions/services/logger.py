@@ -1,16 +1,39 @@
 """
-    services/logger.py
-    Module for logging service to handle logging operations.
+    Relative location: services/logger.py
+
+    This module provides a Logger class for creating and configuring loggers 
+    with support for JSON formatting.
+
+    Classes:
+        Logger: A class that provides methods to create and configure loggers.
+
+    Usage example:
+
+        logger = Logger.get_logger(
+            name='my_logger',
+            level=logging.INFO,
+            log_to_file=True,
+            log_file='/path/to/logfile.log',
+            json_format=True
+
+        logger.info('This is an info message')
 """
 
-import logging
 import os
+import logging
 from datetime import datetime
 from pythonjsonlogger import jsonlogger
 
 class Logger:
     """
-    Logging service for handling operations with support for JSON formatting.
+    A class that provides methods to create and configure loggers.
+
+    Attributes:
+        None
+
+    Methods:
+        get_logger(name, level, log_to_file, log_file, json_format):
+            Returns a configured logger with either JSON formatted or plain text logs.
     """
 
     @staticmethod
