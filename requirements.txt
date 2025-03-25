@@ -27,7 +27,7 @@ azure-mgmt-batchai==7.0.0b1
 azure-mgmt-billing==6.0.0
 azure-mgmt-botservice==2.0.0
 azure-mgmt-cdn==12.0.0
-azure-mgmt-cognitiveservices==13.5.0
+azure-mgmt-cognitiveservices==13.6.0
 azure-mgmt-compute==33.0.0
 azure-mgmt-containerinstance==10.2.0b1
 azure-mgmt-containerregistry==10.3.0
