@@ -100,7 +100,7 @@ humanfriendly==10.0
 idna==3.10
 invoke==2.2.0
 isodate==0.7.2
-javaproperties==0.5.2
+javaproperties==0.8.2
 jmespath==1.0.1
 jsondiff==2.2.1
 knack==0.11.0
