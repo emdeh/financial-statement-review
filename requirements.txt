@@ -66,7 +66,7 @@ azure-mgmt-redhatopenshift==2.0.0
 azure-mgmt-redis==14.5.0
 azure-mgmt-resource==23.1.1
 azure-mgmt-search==9.1.0
-azure-mgmt-security==6.0.0
+azure-mgmt-security==7.0.0
 azure-mgmt-servicebus==8.2.1
 azure-mgmt-servicefabric==2.1.0
 azure-mgmt-servicefabricmanagedclusters==2.1.0b1
