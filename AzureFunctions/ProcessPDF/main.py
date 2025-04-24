@@ -69,23 +69,22 @@ def main(myblob: func.InputStream):
         pdf_bytes = myblob.read()
 
         # 1) PDF validity check
-        if not pdf_service.is_pdf(pdf_bytes):
-            logger.error("Blob is not a valid PDF file",
-            extra={
-                "blob_name": myblob.name}
+        is_pdf = pdf_service.is_pdf(pdf_bytes)
+        if not is_pdf:
+            logger.error(
+                "Blob is not a valid PDF file",
+                extra={"blob_name": myblob.name}
             )
-            # Record failure in Cosmos DB
             db.store_results(
                 document_name=myblob.name,
                 data={
-                    "is_pdf": False,
-                    "blobUrl": myblob.uri,
-                })
-        
-        logger.info("Blob is a valid PDF file",
-        extra={
-            "blob_name": myblob.name
-            })
+                    "isPDF": False,
+                    "blobUrl": myblob.uri
+                }
+            )
+            return
+
+        logger.info("Blob is a valid PDF file", extra={"blob_name": myblob.name})
 
         # First attempt to extracted embedded text for digitally generated PDFs
         embedded_text = pdf_service.extract_embedded_text(pdf_bytes)

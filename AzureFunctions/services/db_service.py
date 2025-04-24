@@ -13,6 +13,7 @@ from datetime import datetime
 from azure.cosmos import CosmosClient, exceptions
 from services.logger import Logger
 from services.debug_utils import write_debug_file, is_debug_mode
+from services.db_models import DocumentResult
 
 class DbService:
     """
@@ -74,39 +75,45 @@ class DbService:
         self.logger.info(
             "Storing results to Cosmos DB",
             extra={
-                "documentName:": document_name,
+                "documentName": document_name,
                 "fields": data.keys(),
             }
         )
 
-        # Build the base item
-        item = {
+        # Build the raw payload
+        raw = {
             "id": str(uuid.uuid4()),  # Generate a unique ID for the document
             "documentName": document_name,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.utcnow(),
             **data
         }
 
-        # Include any additional fields provided
-        for key, value in data.items():
-            if key not in item:
-                item[key] = value
+       # Validate & coerce via Pydantic
+        validated_item = DocumentResult(**raw).model_dump(
+            mode="json",
+            by_alias=True,
+        )
+        # Manually make timestamp JSON-safe
+        #ts = validated_item.get("timestamp")
+        #if isinstance(ts, datetime):
+        #    validated_item["timestamp"] = ts.isoformat()
 
-        # DEBUG
+        # 4) (Optional) Debug dump
         if is_debug_mode():
-            # Write the item to a debug file
-            debug_file = write_debug_file(item, prefix="cosmos_item")
-            self.logger.info(
-                "DEBUG ON – Cosmos DB item payload written",
-                extra={"debug_file": debug_file}
-                )
+            debug_file = write_debug_file(validated_item, prefix="cosmos_item")
+            self.logger.info("DEBUG ON – Cosmos DB item payload written",
+                            extra={"debug_file": debug_file})
 
-        # Upsert into Cosmos DB
+        # 5) Upsert into Cosmos
         try:
-            result = self.container.upsert_item(item)
+            result = self.container.upsert_item(validated_item)
+            self.logger.info(
+                "Successfully stored results to Cosmos DB",
+                extra={"documentName": document_name, "item_id": validated_item["id"]}
+            )
             return result
+
         except exceptions.CosmosHttpResponseError as e:
-            # Log full exception with stack trace
             self.logger.exception(
                 "Failed to upsert item to Cosmos DB",
                 extra={
@@ -116,10 +123,3 @@ class DbService:
                 }
             )
             raise
-        self.logger.info(
-            "Successfully stored results to Cosmos DB",
-            extra={
-                "documentName": document_name,
-                "item_id": item["id"]
-            }
-        )
