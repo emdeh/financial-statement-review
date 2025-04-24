@@ -96,7 +96,7 @@ def main(myblob: func.InputStream):
             }
         )
 
-        # First attempt to extracted embedded text for digitally generated PDFs
+        # First attempt to extract embedded text for digitally generated PDFs
         embedded_text = pdf_service.extract_embedded_text(pdf_bytes)
 
         if embedded_text:
@@ -131,6 +131,18 @@ def main(myblob: func.InputStream):
                     "error": str(e)
                     })
                 return
+
+        # 3) ABN detection
+        abn_value = pdf_service.find_abn(ocr_result)
+        has_abn = abn_value is not None
+
+        logger.info(
+            "ABN detection complete",
+            extra={
+                "hasABN": has_abn,
+                "ABN": abn_value
+            }
+        )
 
         # DEBUG
         if is_debug_mode():

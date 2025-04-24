@@ -25,7 +25,7 @@ class DocumentResult(BaseModel):
     isValidAFS: Optional[bool] = None
     afsConfidence: Optional[float] = Field(None, alias="afsConfidence")
     hasABN: Optional[bool] = None
-    abn: Optional[str] = None
+    ABN: Optional[str] = None
     timestamp: datetime
 
     class Config:
