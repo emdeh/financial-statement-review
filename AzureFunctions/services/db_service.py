@@ -10,7 +10,6 @@ Classes:
 import os
 import uuid
 from datetime import datetime
-from azure.identity import DefaultAzureCredential
 from azure.cosmos import CosmosClient, exceptions
 from services.logger import Logger
 from services.debug_utils import write_debug_file, is_debug_mode
@@ -27,10 +26,13 @@ class DbService:
         # Initialise the JSON logger for this service
         self.logger = Logger.get_logger("DbService", json_format=True)
 
+        # Get key
+        key = os.environ.get("COSMOS_KEY")
+
         # Read Cosmos DB configuration from environment variables
-        self.account_uri = os.getenv("COSMOS_ACCOUNT_URI")
-        self.database_name = os.getenv("COSMOS_DATABASE_NAME")
-        self.container_name = os.getenv("COSMOS_CONTAINER_NAME")
+        self.account_uri = os.environ.get("COSMOS_ACCOUNT_URI")
+        self.database_name = os.environ.get("COSMOS_DATABASE_NAME")
+        self.container_name = os.environ.get("COSMOS_CONTAINER_NAME")
 
         # Validate config
         if not all([self.account_uri, self.database_name, self.container_name]):
@@ -38,8 +40,7 @@ class DbService:
             raise ValueError("Missing Cosmos DB configuration. Check environment variables.")
 
         # Authenticate with Azure AD
-        credential = DefaultAzureCredential()
-        self.client = CosmosClient(self.account_uri, credential=credential)
+        self.client = CosmosClient(self.account_uri, credential=key)
         self.database = self.client.get_database_client(self.database_name)
         self.container = self.database.get_container_client(self.container_name)
         self.logger.info("Connected to Cosmos DB successfully.")
