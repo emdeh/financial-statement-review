@@ -59,6 +59,10 @@ def main(myblob: func.InputStream):
             "blob_name": myblob.name
             })
 
+        # Invoke DbService to store results
+        db = DbService()
+
+        
         # Read blob content (PDF bytes)
         pdf_bytes = myblob.read()
 
@@ -119,13 +123,13 @@ def main(myblob: func.InputStream):
 
         # Write results to database
 
-        db = DbService()
+        
         db.store_results(
             document_name=myblob.name,
             data={
-                "blobUrl": f"https://{os.environ['AzureWebJobsStorage_ACCOUNT_NAME']}.blob.core.windows.net/your-container/{myblob.name}",
+                "blobUrl": f"https://{os.environ['AzureWebJobsStorage_ACCOUNT_NAME']}.blob.core.windows.net/{myblob.container}/{myblob.name}",
                 "extractionMethod": extraction_method,
-                "isValidAFS": classification_result["is_valid_afs"],
+                "is_valid_afs": classification_result["is_valid_afs"],
                 "confidence": classification_result["confidence"]
             }
         )
