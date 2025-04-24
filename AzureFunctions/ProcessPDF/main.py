@@ -44,7 +44,7 @@ def simulate_ml_classification(text):
     """
     return {
         "is_valid_afs": True,
-        "confidence": 0.95,
+        "afs_confidence": 0.95,
         "ml_message": "The document is valid and meets the AFS requirements."
     }
 
@@ -143,7 +143,7 @@ def main(myblob: func.InputStream):
                     "blobUrl": myblob.uri,
                     "extractionMethod": extraction_method,
                     "is_valid_afs": classification_result["is_valid_afs"],
-                    "confidence": classification_result["confidence"]
+                    "afs_confidence": classification_result["afs_confidence"]
                 }
             )
         except Exception as e:

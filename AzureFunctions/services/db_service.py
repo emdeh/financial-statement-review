@@ -86,7 +86,7 @@ class DbService:
             "blobUrl": data.get("blobUrl"),
             "extractionMethod": data.get("extractionMethod"),
             "isValidAFS": data.get("is_valid_afs"),
-            "confidence": data.get("confidence"),
+            "isAFSConfidence": data.get("afs_confidence"),
             "timestamp": datetime.utcnow().isoformat()
         }
 
