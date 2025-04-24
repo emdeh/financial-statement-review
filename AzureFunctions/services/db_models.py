@@ -36,8 +36,4 @@ class DocumentResult(BaseModel):
         """
         allow_population_by_field_name = True
 
-# DEBUG
-if is_debug_mode():
-    # Dump JSON schema to a file for debugging
-    schema = DocumentResult.model_json_schema()
-    write_debug_file(schema, prefix="DocumentResult_schema")
+
