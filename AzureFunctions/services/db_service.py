@@ -7,6 +7,12 @@ Classes:
 
 """
 
+import os
+import uuid
+from datetime import datetime
+from azure.identity import DefaultAzureCredential
+from azure.cosmos import CosmosClient, exceptions
+
 class DbService:
     """
     A service class to handle database operations.
