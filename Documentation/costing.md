@@ -1,6 +1,6 @@
 # Sizing estimator
 
-Please review the [Sizing Estimator](https://azure.com/e/5662e49987994a78a3f75d12141490dd) to help find the potential operating costs.
+Please review the [Sizing Estimator](https://azure.com/e/e9057d50fc29453db8ab03dccdad57f2) to help find the potential operating costs.
 
 ## Assumptions
 The following outlines the assumptions you should be aware of in the Sizing Estimator. Adjust them in Microsoft's calculator as required.
@@ -27,3 +27,8 @@ The following outlines the assumptions you should be aware of in the Sizing Esti
     - **Partition Key Design:** Efficient partition key design ensures even distribution of data and avoids hot partitions, optimizing RU usage.
 
     Use the [Azure Cosmos DB Capacity Calculator](https://cosmos.azure.com/capacitycalculator/) to refine your estimate based on your specific workload.
+
+    ### Azure Function
+    - **Memory Size:**
+    - **Execution time:**
+    - **Executions per month:**
