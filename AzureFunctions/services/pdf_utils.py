@@ -5,6 +5,7 @@ This module provides utility functions for working with PDF files.
 """
 
 import io
+import re
 from PyPDF2 import PdfReader
 from services.logger import Logger
 
@@ -68,3 +69,18 @@ class PDFService:
         except Exception as e:
             self.logger.error("Error counting PDF pages: %s", str(e))
             return None
+
+    def find_abn(self, text: str) -> str | None:
+        """
+        Search the extracted text for an Australian Business Number (ABN).
+        Returns the 11-digit ABN (no spaces) if found, else None.
+        """
+        # Look for patterns like "12 345 678 901" or "12345678901"
+        match = re.search(r"\b(\d{2}\s?\d{3}\s?\d{3}\s?\d{3})\b", text)
+        if not match:
+            return None
+
+        # Normalise by stripping out any spaces
+        abn = re.sub(r"\s+", "", match.group(1))
+        self.logger.info("PDFService.find_abn", extra={"abn": abn})
+        return abn
