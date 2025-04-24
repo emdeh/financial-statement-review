@@ -5,33 +5,54 @@ Imagine a financial statement is being reviewed. Here’s how the components int
 - A financial statement (PDF) is uploaded to the **Storage Account**.
 - **Event Grid** detects the new blob and sends an event to trigger the **Function App**.
 
-## 2. Document Processing:
-- The Azure Function is activated.
-- It uses **Cognitive Services** to perform OCR and extract text (and possibly table data) from the PDF.
-- The extracted text is then sent to the **Azure Machine Learning Workspace** endpoint, where the document classifier (using embeddings and supervised learning) determines if it’s a valid AFS.
-- In parallel, the function may perform additional checks, such as looking for an auditor’s signature either by searching for textual cues or by calling another model (which could also be hosted in AML).
+## 2. Document Processing and Validation:
+When the Azure Function is activated, it performs a series of sequential checks and extraction steps before any AI classification:
 
+1. **PDF Validation**  
+   The function reads the raw blob bytes and verifies the `%PDF-` header to ensure the file is a valid PDF. Non-PDF files are logged with `isPDF=false` in Cosmos DB and processing stops.
+
+2. **Page Count Extraction**  
+   Using PyPDF2, the function counts the number of pages in the PDF and records this as `pageCount` for reporting.
+
+3. **Text Extraction**  
+   - **Embedded Text**: for digitally generated PDFs, text is extracted directly via PyPDF2.
+   - **OCR Fallback**: if embedded text is empty or on parse errors, Azure Cognitive Services' OCR is invoked to extract text from scanned pages.
+
+4. **ABN Detection**  
+   The extracted text is scanned with a regex for an Australian Business Number (ABN). If found, the normalized 11-digit ABN is stored under `abn` and a boolean `hasABN=true`.
+
+5. **AI Classification & Feature Checks**  
+   The cleaned text or its embedding is sent to an Azure ML Workspace endpoint which returns:
+   - `isValidAFS`: whether the document is a valid Annual Financial Statement (AFS)
+   - `afsConfidence`: confidence score of the classification
+   Additional feature checks (e.g., signature detection) can be added in this step.
 
 ## 3. Result Storage and Feedback:
-- The outcome—classification result, confidence level, and signature detection status—is stored in **Cosmos DB**.
-- Any errors or alerts can be logged and monitored through **Application Insights** (if integrated).
-- **Azure Key Vault** is used during processing to securely retrieve secrets or API keys.
-- **Managed Identity** ensures the function securely accesses Cosmos DB, Key Vault, and Cognitive Services.
+- The function constructs a single JSON document with all collected fields (`isPDF`, `pageCount`, `blobUrl`, `extractionMethod`, `abn`, `hasABN`, `isValidAFS`, `afsConfidence`, `timestamp`, etc.) and upserts it into **Cosmos DB** via a Pydantic-backed model.
+- Any errors or alerts are logged to **Application Insights**.
+- **Azure Key Vault** and **Managed Identity** secure access to secrets and database.
 
 ## 4. Review and Reporting:
-- A dashboard (e.g. via **Power BI**) can later query **Cosmos DB** to provide daily reports and visual insights on processed documents.
-- Officers can review the results, and their feedback can be fed back into the **Azure ML Workspace** for continuous learning.
+- A dashboard (e.g., **Power BI**) queries Cosmos DB to provide daily reports on document counts, PDF validity rates, page counts, ABN presence, classification outcomes, and override statistics.
+- Case officers can review and provide feedback that feeds back into the ML Workspace for continuous learning.
 
-Below is a simple diagram of the flow:
+Below is the updated diagram of the flow:
 ```mermaid
 flowchart TD
     A[User Uploads PDF] --> B[Storage Account]
     B --> C[Event Grid]
     C --> D[Function App]
+    subgraph "Validation & Extraction"
+      D --> D1[Validate PDF Header]
+      D --> D2[Count Pages]
+      D --> D3[Extract Text (Embedded/OCR)]
+      D --> D4[Detect ABN]
+      D --> D5[Classify & Feature Checks]
+    end
+    D --> H[Cosmos DB (Results Storage)]
     D --> E[Cognitive Services (OCR)]
     D --> F[Azure ML Workspace (Classifier)]
     D --> G[Azure Key Vault (Secrets)]
-    D --> H[Cosmos DB (Results Storage)]
     subgraph Monitoring & Feedback
       I[Application Insights]
       J[Power BI Dashboard]
