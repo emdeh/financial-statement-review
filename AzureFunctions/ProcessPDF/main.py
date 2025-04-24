@@ -123,14 +123,18 @@ def main(myblob: func.InputStream):
             "ML classification complete",
             extra={"classification_result": classification_result})
 
-        # Simulate writing the classification result to a database
-        cosmos_response = simulate_write_to_db({
-            "blob_name": myblob.name,
-            "classification_result": classification_result,
-            "extracted_text": ocr_result
-        })
-        logger.info("CosmosDB write simulated", extra=cosmos_response)
+        # Write results to database
 
+        db = DbService()
+        db.store_results(
+            document_name=myblob.name,
+            data={
+                "blobUrl": f"https://{os.environ['AzureWebJobsStorage_ACCOUNT_NAME']}.blob.core.windows.net/your-container/{myblob.name}",
+                "extractionMethod": extraction_method,
+                "valid_afs": classification_result["is_valid_afs"],
+                "confidence": classification_result["confidence"]
+            }
+        )
         # Optionally, add more details to the span if needed.
         span.add_attribute("blob_name", myblob.name)
         span.add_attribute("blob_size", myblob.length)
