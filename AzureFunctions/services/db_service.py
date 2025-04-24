@@ -55,6 +55,15 @@ class DbService:
         Returns:
             dict: The upserted item from Cosmos DB.
         """
+        # Log entry and key metadata
+        self.logger.info(
+            "Storing results to Cosmos DB",
+            extra={
+                "documentName:": document_name,
+                "fields": data.keys(),
+            }
+        )
+
         # Build the base item
         item = {
             "id": str(uuid.uuid4()),  # Generate a unique ID for the document
@@ -76,5 +85,20 @@ class DbService:
             result = self.container.upsert_item(item)
             return result
         except exceptions.CosmosHttpResponseError as e:
-            self.logger.error("Failed to upsert item: %s", e.message)
+            # Log full exception with stack trace
+            self.logger.exception(
+                "Failed to upsert item to Cosmos DB",
+                extra={
+                    "documentName": document_name,
+                    "status_code": e.status_code,
+                    "error": e.message
+                }
+            )
             raise
+        self.logger.info(
+            "Successfully stored results to Cosmos DB",
+            extra={
+                "documentName": document_name,
+                "item_id": item["id"]
+            }
+        )
