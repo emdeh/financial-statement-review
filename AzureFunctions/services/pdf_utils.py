@@ -7,24 +7,35 @@ This module provides utility functions for working with PDF files.
 import io
 from PyPDF2 import PdfReader
 
-def extract_embedded_text(pdf_bytes: bytes) -> str:
+class PDFService:
     """
-    Attempts to extract text directly from a digitally generated PDF using PyPDF2.
+    A service class to handle PDF operations.
     
-    Args:
-        pdf_bytes (bytes): PDF file content.
+    This class provides methods to extract text from PDF files, both digitally generated and scanned.
     
-    Returns:
-        str: Extracted text. May be empty if the PDF is scanned.
+    Methods:
+        extract_embedded_text(pdf_bytes: bytes) -> str:
+            Attempts to extract text directly from a digitally generated PDF using PyPDF2.
     """
-    text = ""
-    try:
-        reader = PdfReader(io.BytesIO(pdf_bytes))
-        for page in reader.pages:
-            page_text = page.extract_text()
-            if page_text:
-                text += page_text + "\n"
-    except Exception:
-        # In case of any error, return empty string to fallback to OCR.
+
+    def extract_embedded_text(pdf_bytes: bytes) -> str:
+        """
+        Attempts to extract text directly from a digitally generated PDF using PyPDF2.
+        
+        Args:
+            pdf_bytes (bytes): PDF file content.
+        
+        Returns:
+            str: Extracted text. May be empty if the PDF is scanned.
+        """
         text = ""
-    return text.strip()
+        try:
+            reader = PdfReader(io.BytesIO(pdf_bytes))
+            for page in reader.pages:
+                page_text = page.extract_text()
+                if page_text:
+                    text += page_text + "\n"
+        except Exception:
+            # In case of any error, return empty string to fallback to OCR.
+            text = ""
+        return text.strip()
