@@ -23,7 +23,9 @@ class DbService:
             Stores the classification result in the Cosmos DB container.
     """
     def __init__(self):
+        # Initialise the JSON logger for this service
         self.logger = Logger.get_logger("DbService", json_format=True)
+
         # Read Cosmos DB configuration from environment variables
         self.account_uri = os.getenv("COSMOS_ACCOUNT_URI")
         self.database_name = os.getenv("COSMOS_DATABASE_NAME")
@@ -74,5 +76,5 @@ class DbService:
             result = self.container.upsert_item(item)
             return result
         except exceptions.CosmosHttpResponseError as e:
-            self.logger.error(f"Failed to upsert item: {e.message}")
+            self.logger.error("Failed to upsert item: %s", e.message)
             raise

@@ -15,6 +15,7 @@ from services.tracer import AppTracer
 from services.ocr_service import OcrService, OcrServiceError
 from services.debug_utils import write_debug_file, is_debug_mode
 from services.pdf_utils import extract_embedded_text
+from services.db_service import DbService
 
 # Initialise the JSON logger for this function
 logger = Logger.get_logger("ProcessPDF", json_format=True)
