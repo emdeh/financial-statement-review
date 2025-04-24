@@ -12,6 +12,8 @@ The following outlines the assumptions you should be aware of in the Sizing Esti
 - **Training:** 10 hours  
     This refers to the time spent training custom models using the Azure AI Computer Vision service.
 
+---
+
 ### Azure Cosmos DB
 - **Request Units (RU/s):** 500
 - **Average utilisation:** 80%
@@ -27,8 +29,11 @@ The following outlines the assumptions you should be aware of in the Sizing Esti
     - **Partition Key Design:** Efficient partition key design ensures even distribution of data and avoids hot partitions, optimizing RU usage.
 
     Use the [Azure Cosmos DB Capacity Calculator](https://cosmos.azure.com/capacitycalculator/) to refine your estimate based on your specific workload.
+---
 
-    ### Azure Function
-    - **Memory Size:**
-    - **Execution time:**
-    - **Executions per month:**
+### Azure Function
+- **Memory Size:**
+- **Execution time:**
+- **Executions per month:**
+
+---
