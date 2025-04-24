@@ -48,12 +48,6 @@ def simulate_ml_classification(text):
         "ml_message": "The document is valid and meets the AFS requirements."
     }
 
-def simulate_write_to_db(result):
-    """
-    Simulates writing the classification result to a database.
-    """
-    return {"status:": "Success", "db_message": "Simulate write succssful."}
-
 def main(myblob: func.InputStream):
     """
     Main entry point for the Azure Function.
@@ -131,7 +125,7 @@ def main(myblob: func.InputStream):
             data={
                 "blobUrl": f"https://{os.environ['AzureWebJobsStorage_ACCOUNT_NAME']}.blob.core.windows.net/your-container/{myblob.name}",
                 "extractionMethod": extraction_method,
-                "valid_afs": classification_result["is_valid_afs"],
+                "is_valid_afs": classification_result["is_valid_afs"],
                 "confidence": classification_result["confidence"]
             }
         )
