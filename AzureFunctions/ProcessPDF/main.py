@@ -15,6 +15,7 @@ from services.tracer import AppTracer
 from services.ocr_service import OcrService, OcrServiceError
 from services.debug_utils import write_debug_file, is_debug_mode
 from services.pdf_utils import extract_embedded_text
+from services.db_service import DbService
 
 # Initialise the JSON logger for this function
 logger = Logger.get_logger("ProcessPDF", json_format=True)
@@ -47,12 +48,6 @@ def simulate_ml_classification(text):
         "ml_message": "The document is valid and meets the AFS requirements."
     }
 
-def simulate_write_to_db(result):
-    """
-    Simulates writing the classification result to a database.
-    """
-    return {"status:": "Success", "db_message": "Simulate write succssful."}
-
 def main(myblob: func.InputStream):
     """
     Main entry point for the Azure Function.
@@ -63,6 +58,10 @@ def main(myblob: func.InputStream):
         extra={
             "blob_name": myblob.name
             })
+
+        # Invoke DbService to store results
+        db = DbService()
+
 
         # Read blob content (PDF bytes)
         pdf_bytes = myblob.read()
@@ -95,7 +94,7 @@ def main(myblob: func.InputStream):
                     })
 
                 logger.info("Extraction output length is %s", len(ocr_result))
-
+            
             except OcrServiceError as e:
                 logger.error("Error extracting text from PDF using %s", extraction_method,
                 extra={
@@ -103,6 +102,7 @@ def main(myblob: func.InputStream):
                     })
                 return
 
+        # DEBUG
         if is_debug_mode():
             # Write the extracted text to a debug file
             debug_file = write_debug_file(ocr_result, prefix="ocr_output")
@@ -122,13 +122,36 @@ def main(myblob: func.InputStream):
             "ML classification complete",
             extra={"classification_result": classification_result})
 
-        # Simulate writing the classification result to a database
-        cosmos_response = simulate_write_to_db({
-            "blob_name": myblob.name,
-            "classification_result": classification_result,
-            "extracted_text": ocr_result
-        })
-        logger.info("CosmosDB write simulated", extra=cosmos_response)
+        # DEBUG
+        if is_debug_mode():
+            # Dump the ML payload to a file
+            debug_payload = {
+                "extractionMethod": extraction_method,
+                "classificationResult": classification_result
+            }
+            debug_file = write_debug_file(str(debug_payload), prefix="classification_payload")
+            logger.info("DEBUG ON - Classification payload written",
+            extra={
+                "debug_file": debug_file
+                })
+
+        # Write results to database
+        try:
+            db.store_results(
+                document_name=myblob.name,
+                data={
+                    "blobUrl": myblob.uri,
+                    "extractionMethod": extraction_method,
+                    "is_valid_afs": classification_result["is_valid_afs"],
+                    "confidence": classification_result["confidence"]
+                }
+            )
+        except Exception as e:
+            logger.error("Error storing results in Cosmos DB",
+            extra={
+                "error": str(e)
+                })
+            return
 
         # Optionally, add more details to the span if needed.
         span.add_attribute("blob_name", myblob.name)
