@@ -125,7 +125,7 @@ def main(myblob: func.InputStream):
             data={
                 "blobUrl": f"https://{os.environ['AzureWebJobsStorage_ACCOUNT_NAME']}.blob.core.windows.net/your-container/{myblob.name}",
                 "extractionMethod": extraction_method,
-                "is_valid_afs": classification_result["is_valid_afs"],
+                "isValidAFS": classification_result["is_valid_afs"],
                 "confidence": classification_result["confidence"]
             }
         )
