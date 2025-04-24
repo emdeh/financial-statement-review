@@ -88,21 +88,19 @@ class DbService:
             **data
         }
 
+        # DEBUG
+        if is_debug_mode():
+            write_debug_file(raw, prefix="cosmos_raw")
+
        # Validate & coerce via Pydantic
         validated_item = DocumentResult(**raw).model_dump(
             mode="json",
             by_alias=True,
         )
-        # Manually make timestamp JSON-safe
-        #ts = validated_item.get("timestamp")
-        #if isinstance(ts, datetime):
-        #    validated_item["timestamp"] = ts.isoformat()
-
-        # 4) (Optional) Debug dump
+        
+        # DEBUG
         if is_debug_mode():
-            debug_file = write_debug_file(validated_item, prefix="cosmos_item")
-            self.logger.info("DEBUG ON – Cosmos DB item payload written",
-                            extra={"debug_file": debug_file})
+            write_debug_file(validated_item, prefix="cosmos_validated")
 
         # 5) Upsert into Cosmos
         try:
@@ -123,3 +121,7 @@ class DbService:
                 }
             )
             raise
+
+        # DEBUG
+        if is_debug_mode():
+            write_debug_file(result, prefix="cosmos_response")
