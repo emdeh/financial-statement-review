@@ -55,3 +55,16 @@ class PDFService:
             # In case of any error, return empty string to fallback to OCR.
             text = ""
         return text.strip()
+
+    def get_page_count(self, pdf_bytes: bytes) -> int | None:
+        """
+        Returns the number of pages in the PDF, or None if it can't be read.
+        """
+        try:
+            reader = PdfReader(io.BytesIO(pdf_bytes))
+            count = len(reader.pages)
+            self.logger.info("PDFService.get_page_count", extra={"pageCount": count})
+            return count
+        except Exception as e:
+            self.logger.error("Error counting PDF pages: %s", str(e))
+            return None
