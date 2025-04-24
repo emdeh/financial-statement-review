@@ -62,7 +62,7 @@ def main(myblob: func.InputStream):
         # Invoke DbService to store results
         db = DbService()
 
-        
+
         # Read blob content (PDF bytes)
         pdf_bytes = myblob.read()
 
@@ -121,18 +121,36 @@ def main(myblob: func.InputStream):
             "ML classification complete",
             extra={"classification_result": classification_result})
 
-        # Write results to database
-
-        
-        db.store_results(
-            document_name=myblob.name,
-            data={
-                "blobUrl": f"https://{os.environ['AzureWebJobsStorage_ACCOUNT_NAME']}.blob.core.windows.net/{myblob.container}/{myblob.name}",
+        if is_debug_mode():
+            # Dump the ML payload
+            debug_payload = {
                 "extractionMethod": extraction_method,
-                "is_valid_afs": classification_result["is_valid_afs"],
-                "confidence": classification_result["confidence"]
+                "classificationResult": classification_result
             }
-        )
+            debug_file = write_debug_file(str(debug_payload), prefix="classification_payload")
+            logger.info("DEBUG ON - Classification payload written",
+            extra={
+                "debug_file": debug_file
+                })
+                
+        # Write results to database
+        try:
+            db.store_results(
+                document_name=myblob.name,
+                data={
+                    "blobUrl": myblob.uri,
+                    "extractionMethod": extraction_method,
+                    "is_valid_afs": classification_result["is_valid_afs"],
+                    "confidence": classification_result["confidence"]
+                }
+            )
+        except Exception as e:
+            logger.error("Error storing results in Cosmos DB",
+            extra={
+                "error": str(e)
+                })
+            return
+
         # Optionally, add more details to the span if needed.
         span.add_attribute("blob_name", myblob.name)
         span.add_attribute("blob_size", myblob.length)

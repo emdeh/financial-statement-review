@@ -13,6 +13,7 @@ from datetime import datetime
 from azure.identity import DefaultAzureCredential
 from azure.cosmos import CosmosClient, exceptions
 from services.logger import Logger
+from services.debug_utils import write_debug_file, is_debug_mode
 
 class DbService:
     """
@@ -42,6 +43,19 @@ class DbService:
         self.database = self.client.get_database_client(self.database_name)
         self.container = self.database.get_container_client(self.container_name)
         self.logger.info("Connected to Cosmos DB successfully.")
+
+        # DEBUG
+        if is_debug_mode():
+            # Log the configuration details for debugging
+            # Note: Be cautious with logging sensitive information in production.S
+            self.logger.info(
+                "DEBUG ON – Cosmos config",
+                extra={
+                    "accountUri": self.account_uri,
+                    "database": self.database_name,
+                    "container": self.container_name
+                    }
+                    )
 
 
     def store_results(self, document_name: str, data: dict) -> dict:
@@ -79,6 +93,15 @@ class DbService:
         for key, value in data.items():
             if key not in item:
                 item[key] = value
+
+        # DEBUG
+        if is_debug_mode():
+            # Write the item to a debug file
+            debug_file = write_debug_file(item, prefix="cosmos_item")
+            self.logger.info(
+                "DEBUG ON – Cosmos DB item payload written",
+                extra={"debug_file": debug_file}
+                )
 
         # Upsert into Cosmos DB
         try:
