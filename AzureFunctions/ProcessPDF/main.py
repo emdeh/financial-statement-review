@@ -187,7 +187,9 @@ def main(myblob: func.InputStream):
                     "blobUrl": myblob.uri,
                     "extractionMethod": extraction_method,
                     "isValidAFS": classification_result["is_valid_afs"],
-                    "afsConfidence": classification_result["afs_confidence"]
+                    "afsConfidence": classification_result["afs_confidence"],
+                    "hasABN": has_abn,
+                    "ABN": abn_value
                 }
             )
         except Exception as e:
