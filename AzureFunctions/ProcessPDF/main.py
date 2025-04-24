@@ -86,6 +86,16 @@ def main(myblob: func.InputStream):
 
         logger.info("Blob is a valid PDF file", extra={"blob_name": myblob.name})
 
+        # 2) PDF page count check
+        page_count = pdf_service.get_page_count(pdf_bytes)
+        logger.info(
+            "PDF page count",
+            extra={
+                "blob_name": myblob.name,
+                "pageCount": page_count
+            }
+        )
+
         # First attempt to extracted embedded text for digitally generated PDFs
         embedded_text = pdf_service.extract_embedded_text(pdf_bytes)
 
@@ -161,7 +171,7 @@ def main(myblob: func.InputStream):
                 document_name=myblob.name,
                 data={
                     "isPDF": pdf_service.is_pdf(pdf_bytes),
-                    #pageCount:": page_count,
+                    "pageCount": page_count,
                     "blobUrl": myblob.uri,
                     "extractionMethod": extraction_method,
                     "isValidAFS": classification_result["is_valid_afs"],
@@ -178,3 +188,5 @@ def main(myblob: func.InputStream):
         # Optionally, add more details to the span if needed.
         span.add_attribute("blob_name", myblob.name)
         span.add_attribute("blob_size", myblob.length)
+        span.add_attribute("page_count", page_count)
+        span.add_attribute("extraction_method", extraction_method)
