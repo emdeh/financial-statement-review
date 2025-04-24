@@ -102,6 +102,7 @@ def main(myblob: func.InputStream):
                     })
                 return
 
+        # DEBUG
         if is_debug_mode():
             # Write the extracted text to a debug file
             debug_file = write_debug_file(ocr_result, prefix="ocr_output")
@@ -121,8 +122,9 @@ def main(myblob: func.InputStream):
             "ML classification complete",
             extra={"classification_result": classification_result})
 
+        # DEBUG
         if is_debug_mode():
-            # Dump the ML payload
+            # Dump the ML payload to a file
             debug_payload = {
                 "extractionMethod": extraction_method,
                 "classificationResult": classification_result
@@ -132,7 +134,7 @@ def main(myblob: func.InputStream):
             extra={
                 "debug_file": debug_file
                 })
-                
+
         # Write results to database
         try:
             db.store_results(
