@@ -6,6 +6,7 @@ This module provides utility functions for working with PDF files.
 
 import io
 from PyPDF2 import PdfReader
+from services.logger import Logger
 
 class PDFService:
     """
@@ -17,6 +18,13 @@ class PDFService:
         extract_embedded_text(pdf_bytes: bytes) -> str:
             Attempts to extract text directly from a digitally generated PDF using PyPDF2.
     """
+
+    def __init__(self):
+        """
+        Initialises the PDF service.
+        """
+        # Initialise the JSON logger for this service
+        self.logger = Logger.get_logger("PDFService", json_format=True)
 
     def extract_embedded_text(self, pdf_bytes: bytes) -> str:
         """
@@ -35,7 +43,9 @@ class PDFService:
                 page_text = page.extract_text()
                 if page_text:
                     text += page_text + "\n"
-        except Exception:
+        except Exception as e:
+            # Log the error with the exception message
+            self.logger.error("Error extracting text from PDF: %s, falling back to OCR", str(e))
             # In case of any error, return empty string to fallback to OCR.
             text = ""
         return text.strip()
