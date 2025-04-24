@@ -26,6 +26,12 @@ class PDFService:
         # Initialise the JSON logger for this service
         self.logger = Logger.get_logger("PDFService", json_format=True)
 
+    def is_pdf(self, pdf_bytes: bytes) -> bool:
+        """
+        Checks if the provided bytes represent a PDF file by looking for the %PDF- header.
+        """
+        return pdf_bytes.startswith(b"%PDF-")
+
     def extract_embedded_text(self, pdf_bytes: bytes) -> str:
         """
         Attempts to extract text directly from a digitally generated PDF using PyPDF2.
