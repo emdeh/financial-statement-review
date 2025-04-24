@@ -65,7 +65,6 @@ def main(myblob: func.InputStream):
         # Invoke PDFService to extract embedded text
         pdf_service = PDFService()
 
-
         # Read blob content (PDF bytes)
         pdf_bytes = myblob.read()
 
@@ -162,10 +161,12 @@ def main(myblob: func.InputStream):
             db.store_results(
                 document_name=myblob.name,
                 data={
+                    "isPDF": pdf_service.is_pdf(pdf_bytes),
+                    #pageCount:": page_count,
                     "blobUrl": myblob.uri,
                     "extractionMethod": extraction_method,
-                    "is_valid_afs": classification_result["is_valid_afs"],
-                    "afs_confidence": classification_result["afs_confidence"]
+                    "isValidAFS": classification_result["is_valid_afs"],
+                    "afsConfidence": classification_result["afs_confidence"]
                 }
             )
         except Exception as e:

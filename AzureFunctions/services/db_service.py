@@ -83,15 +83,8 @@ class DbService:
         item = {
             "id": str(uuid.uuid4()),  # Generate a unique ID for the document
             "documentName": document_name,
-            "isPdf": data.get("is_pdf"),
-            "pageCount": data.get("page_count"),
-            "blobUrl": data.get("blobUrl"),
-            "extractionMethod": data.get("extractionMethod"),
-            "isValidAFS": data.get("is_valid_afs"),
-            "isAFSConfidence": data.get("afs_confidence"),
-            "hasABN": data.get("has_abn"),
-            "abn": data.get("abn"),
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
+            **data
         }
 
         # Include any additional fields provided
