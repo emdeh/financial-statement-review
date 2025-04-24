@@ -14,7 +14,7 @@ from services.logger import Logger
 from services.tracer import AppTracer
 from services.ocr_service import OcrService, OcrServiceError
 from services.debug_utils import write_debug_file, is_debug_mode
-from services.pdf_utils import extract_embedded_text
+from services.pdf_utils import PDFService
 from services.db_service import DbService
 
 # Initialise the JSON logger for this function
@@ -62,12 +62,15 @@ def main(myblob: func.InputStream):
         # Invoke DbService to store results
         db = DbService()
 
+        # Invoke PDFService to extract embedded text
+        pdf_service = PDFService()
+
 
         # Read blob content (PDF bytes)
         pdf_bytes = myblob.read()
 
         # First attempt to extracted embedded text for digitally generated PDFs
-        embedded_text = extract_embedded_text(pdf_bytes)
+        embedded_text = pdf_service.extract_embedded_text(pdf_bytes)
 
         if embedded_text:
             extraction_method = "embedded"

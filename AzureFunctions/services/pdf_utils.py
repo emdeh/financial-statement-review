@@ -18,7 +18,7 @@ class PDFService:
             Attempts to extract text directly from a digitally generated PDF using PyPDF2.
     """
 
-    def extract_embedded_text(pdf_bytes: bytes) -> str:
+    def extract_embedded_text(self, pdf_bytes: bytes) -> str:
         """
         Attempts to extract text directly from a digitally generated PDF using PyPDF2.
         
