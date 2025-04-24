@@ -86,6 +86,13 @@ def main(myblob: func.InputStream):
 
         logger.info("Blob is a valid PDF file", extra={"blob_name": myblob.name})
 
+        # DEBUG
+        if is_debug_mode():
+            write_debug_file(
+                {"isPDF": is_pdf},
+                prefix="debug_is_pdf"
+            )
+
         # 2) PDF page count check
         page_count = pdf_service.get_page_count(pdf_bytes)
         logger.info(
@@ -95,6 +102,13 @@ def main(myblob: func.InputStream):
                 "pageCount": page_count
             }
         )
+
+        # DEBUG
+        if is_debug_mode():
+            write_debug_file(
+                {"pageCount": page_count},
+                prefix="debug_page_count"
+            )
 
         # First attempt to extract embedded text for digitally generated PDFs
         embedded_text = pdf_service.extract_embedded_text(pdf_bytes)
@@ -143,6 +157,13 @@ def main(myblob: func.InputStream):
                 "ABN": abn_value
             }
         )
+
+        # DEBUG
+        if is_debug_mode():
+            write_debug_file(
+                {"hasABN": has_abn, "ABN": abn_value},
+                prefix="debug_abn_detection"
+            )
 
         # DEBUG
         if is_debug_mode():
