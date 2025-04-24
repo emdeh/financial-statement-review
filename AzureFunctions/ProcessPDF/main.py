@@ -14,7 +14,7 @@ from services.logger import Logger
 from services.tracer import AppTracer
 from services.ocr_service import OcrService, OcrServiceError
 from services.debug_utils import write_debug_file, is_debug_mode
-from services.pdf_utils import extract_embedded_text
+from services.pdf_utils import PDFService
 from services.db_service import DbService
 
 # Initialise the JSON logger for this function
@@ -44,7 +44,7 @@ def simulate_ml_classification(text):
     """
     return {
         "is_valid_afs": True,
-        "confidence": 0.95,
+        "afs_confidence": 0.95,
         "ml_message": "The document is valid and meets the AFS requirements."
     }
 
@@ -62,12 +62,56 @@ def main(myblob: func.InputStream):
         # Invoke DbService to store results
         db = DbService()
 
+        # Invoke PDFService to extract embedded text
+        pdf_service = PDFService()
 
         # Read blob content (PDF bytes)
         pdf_bytes = myblob.read()
 
-        # First attempt to extracted embedded text for digitally generated PDFs
-        embedded_text = extract_embedded_text(pdf_bytes)
+        # 1) PDF validity check
+        is_pdf = pdf_service.is_pdf(pdf_bytes)
+        if not is_pdf:
+            logger.error(
+                "Blob is not a valid PDF file",
+                extra={"blob_name": myblob.name}
+            )
+            db.store_results(
+                document_name=myblob.name,
+                data={
+                    "isPDF": False,
+                    "blobUrl": myblob.uri
+                }
+            )
+            return
+
+        logger.info("Blob is a valid PDF file", extra={"blob_name": myblob.name})
+
+        # DEBUG
+        if is_debug_mode():
+            write_debug_file(
+                {"isPDF": is_pdf},
+                prefix="debug_is_pdf"
+            )
+
+        # 2) PDF page count check
+        page_count = pdf_service.get_page_count(pdf_bytes)
+        logger.info(
+            "PDF page count",
+            extra={
+                "blob_name": myblob.name,
+                "pageCount": page_count
+            }
+        )
+
+        # DEBUG
+        if is_debug_mode():
+            write_debug_file(
+                {"pageCount": page_count},
+                prefix="debug_page_count"
+            )
+
+        # First attempt to extract embedded text for digitally generated PDFs
+        embedded_text = pdf_service.extract_embedded_text(pdf_bytes)
 
         if embedded_text:
             extraction_method = "embedded"
@@ -101,6 +145,25 @@ def main(myblob: func.InputStream):
                     "error": str(e)
                     })
                 return
+
+        # 3) ABN detection
+        abn_value = pdf_service.find_abn(ocr_result)
+        has_abn = abn_value is not None
+
+        logger.info(
+            "ABN detection complete",
+            extra={
+                "hasABN": has_abn,
+                "ABN": abn_value
+            }
+        )
+
+        # DEBUG
+        if is_debug_mode():
+            write_debug_file(
+                {"hasABN": has_abn, "ABN": abn_value},
+                prefix="debug_abn_detection"
+            )
 
         # DEBUG
         if is_debug_mode():
@@ -140,10 +203,14 @@ def main(myblob: func.InputStream):
             db.store_results(
                 document_name=myblob.name,
                 data={
+                    "isPDF": pdf_service.is_pdf(pdf_bytes),
+                    "pageCount": page_count,
                     "blobUrl": myblob.uri,
                     "extractionMethod": extraction_method,
-                    "is_valid_afs": classification_result["is_valid_afs"],
-                    "confidence": classification_result["confidence"]
+                    "isValidAFS": classification_result["is_valid_afs"],
+                    "afsConfidence": classification_result["afs_confidence"],
+                    "hasABN": has_abn,
+                    "ABN": abn_value
                 }
             )
         except Exception as e:
@@ -156,3 +223,5 @@ def main(myblob: func.InputStream):
         # Optionally, add more details to the span if needed.
         span.add_attribute("blob_name", myblob.name)
         span.add_attribute("blob_size", myblob.length)
+        span.add_attribute("page_count", page_count)
+        span.add_attribute("extraction_method", extraction_method)

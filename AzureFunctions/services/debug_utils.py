@@ -5,6 +5,7 @@ This module contains utility functions for debugging purposes.
 
 import os
 import time
+import json
 
 def write_debug_file(content: str, prefix: str = "debug_output") -> str:
     """
@@ -14,6 +15,11 @@ def write_debug_file(content: str, prefix: str = "debug_output") -> str:
     os.makedirs(debug_dir, exist_ok=True)
     timestamp = int(time.time())
     file_path = f"{debug_dir}/{prefix}_{timestamp}.txt"
+    if not isinstance(content, str):
+        try:
+            content = json.dumps(content, indent=2)
+        except (TypeError, ValueError):
+            content = str(content)
     with open(file_path, "w", encoding="utf-8") as f:
         f.write(content)
     return file_path
