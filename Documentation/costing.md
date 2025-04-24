@@ -1,6 +1,6 @@
 # Sizing estimator
 
-Please review the [Sizing Estimator](https://azure.com/e/e9057d50fc29453db8ab03dccdad57f2) to help find the potential operating costs.
+Please review the [Sizing Estimator](https://azure.com/e/8dabebdeac3443399f1eedc97383f4da) to help find the potential operating costs.
 
 ## Assumptions
 The following outlines the assumptions you should be aware of in the Sizing Estimator. Adjust them in Microsoft's calculator as required.
@@ -35,5 +35,20 @@ The following outlines the assumptions you should be aware of in the Sizing Esti
 - **Memory Size:**
 - **Execution time:**
 - **Executions per month:**
+
+---
+
+### Azure AI Search
+
+...
+
+---
+
+### Azure OpenAI Service
+
+- **Embeddings Model:**
+- **Chat Completion Model:**
+
+...
 
 ---
