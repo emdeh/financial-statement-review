@@ -59,4 +59,5 @@ local.settings.json
 
 .python_packages
 
+# Ignore debug directories
 debug/
