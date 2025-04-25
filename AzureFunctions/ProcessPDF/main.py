@@ -198,6 +198,29 @@ def main(myblob: func.InputStream):
                 "debug_file": debug_file
                 })
 
+        # --- RAG+LLM INTEGRATION POINT ---
+        # 1) Assemble a dict of page→text for RAG:
+        #     ocr_pages = {1: text_page1, 2: text_page2, …}
+        #
+        # 2) Index those chunks into your vector store:
+        #     # EmbeddingService().index_chunks(myblob.name, ocr_pages)
+        #
+        # 3) For each check, run retrieval+LLM:
+        #     # pl = RetrievalService().ask_with_citations(
+        #     #     document_name=myblob.name,
+        #     #     check_name="Profit or Loss Statement",
+        #     #     question="Does this doc contain a profit or loss statement?",
+        #     #     query="profit or loss statement"
+        #     # )
+        #     # cf = RetrievalService().ask_with_citations(…)
+        #
+        # 4) Attach those YES/NO + citation pages into your data payload:
+        #     # data["hasProfitLoss"]   = pl["answer"].startswith("YES")
+        #     # data["profitLossPages"] = pl["citations"]
+        #     # data["hasCashFlow"]     = cf["answer"].startswith("YES")
+        #     # data["cashFlowPages"]   = cf["citations"]
+        # --- END RAG+LLM INTEGRATION POINT ---
+
         # Write results to database
         try:
             db.store_results(
@@ -211,6 +234,11 @@ def main(myblob: func.InputStream):
                     "afsConfidence": classification_result["afs_confidence"],
                     "hasABN": has_abn,
                     "ABN": abn_value
+                    # PLACEHOLDERS from above:
+                    # "hasProfitLoss": ...,
+                    # "profitLossPages": ...
+                    # "hasCashFlow": ...,
+                    # "cashFlowPages": ...
                 }
             )
         except Exception as e:
