@@ -38,7 +38,7 @@ The following outlines the assumptions you should be aware of in the Sizing Esti
 
 ---
 
-### Azure AI Search
+### Azure AI Search with Vector index
 
 ...
 
