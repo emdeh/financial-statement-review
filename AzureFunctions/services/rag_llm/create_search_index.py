@@ -7,7 +7,7 @@ from azure.search.documents.indexes.models import (
     SimpleField,
     SearchFieldDataType,
     SearchableField,
-    SearchField,  # Correct import for vector fields
+    SearchField,
     VectorSearch,
     VectorSearchAlgorithmConfiguration
 )
