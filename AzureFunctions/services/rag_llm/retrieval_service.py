@@ -7,8 +7,8 @@ import re
 import os
 from azure.search.documents import SearchClient
 from azure.search.documents.models import VectorQuery
-from openai import AzureOpenAI, OpenAIError
 from azure.identity import DefaultAzureCredential
+from openai import AzureOpenAI, OpenAIError
 from services.logger import Logger
 
 class RetrievalService:
