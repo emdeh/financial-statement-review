@@ -4,7 +4,8 @@ Module docstring.
 """
 
 import os
-from openai import AzureOpenAI
+import datetime
+from openai import AzureOpenAI, OpenAIError
 from azure.search.documents import SearchClient
 from azure.identity import DefaultAzureCredential
 from services.logger import Logger
@@ -37,19 +38,26 @@ class EmbeddingService:
         self.logger.info("Initialized AzureOpenAI & SearchClient")
 
     def index_chunks(self, document_name: str, ocr_pages: dict[int, str]):
-        """
-        For each page in ocr_pages, chunk & embed text, then upload to Search index.
-        """
         for page, text in ocr_pages.items():
             for chunk in ChunkService.chunk_text(text, page):
-                emb = self.oaiclient.get_embeddings(
-                    model=os.getenv("EMBEDDING_MODEL"),
-                    input=[chunk["text"]]
-                ).data[0].embedding
-                self.search_client.upload_documents([{
-                    "id":            chunk["id"],
-                    "documentName":  document_name,     # partition/filter key
-                    "page":          chunk["page"],
-                    "chunkText":     chunk["text"],
-                    "embedding":     emb
-                }])
+                try:
+                    resp = self.oaiclient.embeddings.create(
+                        model=os.environ["AZURE_OPENAI_EMBEDDING_MODEL"],
+                        input=[chunk["text"]]
+                    )
+                    emb = resp.data[0].embedding
+
+                    self.search_client.upload_documents([{
+                        "id":            chunk["id"],
+                        "documentName":  document_name,
+                        "page":          chunk["page"],
+                        "chunkText":     chunk["text"],
+                        "embedding":     emb,
+                        "createdAt":     datetime.datetime.utcnow().isoformat(),
+                    }])
+                except OpenAIError as oai_err:
+                    self.logger.error("Embedding call failed: %s", str(oai_err),
+                                      extra={"chunk_id": chunk["id"], "page": page})
+                except Exception as e:
+                    self.logger.error("Failed to index chunk to Search: %s", str(e),
+                                      extra={"chunk_id": chunk["id"], "page": page})

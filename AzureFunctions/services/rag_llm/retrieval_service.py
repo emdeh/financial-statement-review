@@ -6,8 +6,8 @@ Module docstring.
 import re
 import os
 from azure.search.documents import SearchClient
-from azure.search.documents.models import VectorizedQuery
-from openai import AzureOpenAI
+from azure.search.documents.models import VectorQuery
+from openai import AzureOpenAI, OpenAIError
 from azure.identity import DefaultAzureCredential
 from services.logger import Logger
 
@@ -30,16 +30,18 @@ class RetrievalService:
             api_key=os.environ["AZURE_OPENAI_API_KEY"],
             api_version=os.environ.get("AZURE_OPENAI_API_VERSION", "2023-05-15")
         )
+        self.chat_deployment = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT_ID")
 
     def retrieve_chunks(self, document_name: str, query: str, k: int = 3):
         """
         Retrieves the top k chunks from the search index based on the query.
         """
         # 1) embed query
-        qemb = self.oaiclient.get_embeddings(
-            model=os.environ.get("EMBEDDING_MODEL"),
+        resp = self.oaiclient.embeddings.create(
+            model=os.environ["AZURE_OPENAI_EMBEDDING_MODEL"],
             input=[query]
-        ).data[0].embedding
+        )
+        qemb = resp.data[0].embedding
 
         # 2) Vector search WITH filter on documentName
         results = self.search.search(
@@ -50,25 +52,45 @@ class RetrievalService:
         )
         return [{"id": r["id"], "page": r["page"], "text": r["chunkText"]} for r in results]
 
-    def ask_with_citations(self, document_name: str,
-                           check_name: str, question: str, query: str):
-        # retrieve
+    def ask_with_citations(self,
+                        document_name: str,
+                        check_name: str,
+                        question: str,
+                        query: str):
+        """
+        Retrieve top-k chunks for `document_name` matching `query`, then
+        ask the AzureOpenAI chat deployment to answer YES/NO + cite pages.
+        """
+        # 1) retrieve relevant chunks
         chunks = self.retrieve_chunks(document_name, query)
-        # build prompt with inline citations
+
+        # 2) build the prompt with inline citations
         prompt = f"QUESTION: {question}\n\n"
         for c in chunks:
             prompt += f"[Page {c['page']} | Chunk {c['id']}]\n{c['text']}\n\n"
         prompt += "Answer YES or NO. If YES, list the page number(s). Answer:"
 
-        # call ChatCompletion
-        resp = self.oaiclient.get_chat_completions(
-            engine=os.getenv("OPENAI_DEPLOYMENT"),
-            messages=[
-              {"role":"system","content":"You are a precise assistant."},
-              {"role":"user","content":prompt}
-            ]
-        ).choices[0].message.content.strip()
+        # 3) call the chat completion endpoint
+        try:
+            chat_resp = self.oaiclient.chat.completions.create(
+                engine=self.chat_deployment,
+                messages=[
+                    {"role": "system", "content": "You are a precise assistant."},
+                    {"role": "user",   "content": prompt}
+                ]
+            )
+            answer = chat_resp.choices[0].message.content.strip()
+        except OpenAIError as err:
+            self.logger.error(
+                "Chat completion failed: %s", str(err),
+                extra={"check": check_name}
+            )
+            answer = "NO — (error)"
 
-        # extract page citations
-        pages = [int(p) for p in re.findall(r"page\s*(\d+)", resp, flags=re.IGNORECASE)]
-        return {"answer": resp, "citations": sorted(set(pages))}
+        # 4) parse out any cited page numbers
+        pages = [
+            int(p)
+            for p in re.findall(r"page\s*(\d+)", answer, flags=re.IGNORECASE)
+        ]
+
+        return {"answer": answer, "citations": sorted(set(pages))}
