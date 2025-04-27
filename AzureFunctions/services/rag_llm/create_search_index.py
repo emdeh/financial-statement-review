@@ -1,4 +1,8 @@
-# scripts/create_search_index.py
+"""
+services/rag_llm/create_search_index.py
+Module docstring.
+"""
+
 import os
 from azure.identity import DefaultAzureCredential
 from azure.search.documents.indexes import SearchIndexClient
