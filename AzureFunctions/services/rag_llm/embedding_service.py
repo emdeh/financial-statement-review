@@ -64,3 +64,5 @@ class EmbeddingService:
                 except Exception as e:
                     self.logger.error("Failed to index chunk to Search: %s", str(e),
                                       extra={"chunk_id": chunk["id"], "page": page})
+
+# TODO: Consider collecting, batching chunks and then calling `upload_documents` to reduce API calls.
