@@ -30,6 +30,7 @@ class RetrievalService:
             api_key=os.environ["AZURE_OPENAI_API_KEY"],
             api_version=os.environ.get("AZURE_OPENAI_API_VERSION", "2023-05-15")
         )
+        self.oaiclient.api_base = os.environ["AZURE_OPENAI_ENDPOINT"]
         self.chat_deployment = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT_ID")
 
     def retrieve_chunks(self, document_name: str, query: str, k: int = 3):
