@@ -30,3 +30,5 @@ class ChunkService:
             chunks.append({"id": chunk_id, "page": page, "text": snippet})
             start += ChunkService.CHUNK_SIZE - ChunkService.OVERLAP
         return chunks
+
+# TODO: Word boundaries. Split words on whitespace via regex to avoid splitting words in the middle.
