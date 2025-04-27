@@ -29,7 +29,7 @@ class RetrievalService:
         # Set up the OpenAI client
         self.oaiclient = AzureOpenAI(
             api_key=os.environ["AZURE_OPENAI_API_KEY"],
-            api_version=os.environ.get("AZURE_OPENAI_API_VERSION", "2023-05-15"),
+            api_version=os.environ.get("AZURE_OPENAI_API_VERSION", "2023-05-15"), # TODO: Make this the same as the version deployed.
             azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"]
         )
 
@@ -52,7 +52,7 @@ class RetrievalService:
         results = self.search.search(
             search_text="*", # ignored when vector present
             vector=VectorQuery(vector=qemb, k=k, fields=["embedding"]),
-            filter=f"documentName eq '{document_name}'",
+            filter=f"documentName eq '{document_name}'", # TODO: OData filter escape issue?
             select=["id","page","chunkText"]
         )
         return [{"id": r["id"], "page": r["page"], "text": r["chunkText"]} for r in results]
@@ -78,6 +78,7 @@ class RetrievalService:
         # 3) call the chat completion endpoint
         try:
             chat_resp = self.oaiclient.chat.completions.create(
+                model=self.chat_deployment,
                 messages=[
                     {"role": "system", "content": "You are a precise assistant."},
                     {"role": "user",   "content": prompt}
