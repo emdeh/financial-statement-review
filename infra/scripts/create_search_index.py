@@ -13,7 +13,8 @@ from azure.search.documents.indexes.models import (
     SearchableField,
     SearchField,
     VectorSearch,
-    VectorSearchAlgorithmConfiguration
+    VectorSearchProfile,
+    HnswAlgorithmConfiguration,
 )
 
 # Load environment variables from .env file
@@ -31,19 +32,23 @@ fields = [
     SearchField(
         name="embedding",
         type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
-        searchable=False,
-        filterable=False,
-        sortable=False,
-        facetable=False,
-        dimensions=1536
+        searchable=True,
+        vector_search_dimensions=1536,
+        vector_search_profile_name="hnsw-config",
     )
 ]
 
 vector_search = VectorSearch(
-    algorithm_configurations=[
-        VectorSearchAlgorithmConfiguration(name="hnsw-config", kind="hnsw")
-    ]
-)
+    profiles=[
+        VectorSearchProfile(
+            name="hnsw-config",
+            algorithm_configuration_name="hnsw-config"
+        )
+    ],
+    algorithms=[
+        HnswAlgorithmConfiguration(name="hnsw-config")
+        ]
+    )
 
 index = SearchIndex(
     name=index_name,
