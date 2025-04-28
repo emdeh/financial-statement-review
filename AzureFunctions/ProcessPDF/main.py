@@ -138,7 +138,7 @@ def main(myblob: func.InputStream):
                     })
 
                 logger.info("Extraction output length is %s", len(ocr_result))
-            
+
             except OcrServiceError as e:
                 logger.error("Error extracting text from PDF using %s", extraction_method,
                 extra={

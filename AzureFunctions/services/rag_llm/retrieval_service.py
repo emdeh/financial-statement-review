@@ -28,11 +28,12 @@ class RetrievalService:
             index_name=os.environ("SEARCH_INDEX"),
             credential=DefaultAzureCredential()
             )
-        
+
         # Set up the OpenAI client
         self.oaiclient = AzureOpenAI(
             api_key=os.environ["AZURE_OPENAI_API_KEY"],
-            api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2023-05-15"), # TODO: Make this the same as the version deployed.
+            api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2023-05-15"),
+            # TODO: Make this the same as the version deployed.
             azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"]
         )
 

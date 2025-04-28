@@ -13,11 +13,13 @@ class PDFService:
     """
     A service class to handle PDF operations.
     
-    This class provides methods to extract text from PDF files, both digitally generated and scanned.
+    This class provides methods to extract text from PDF files, both digitally 
+    generated and scanned.
     
     Methods:
         extract_embedded_text(pdf_bytes: bytes) -> str:
-            Attempts to extract text directly from a digitally generated PDF using PyPDF2.
+            Attempts to extract text directly from a digitally generated PDF 
+            using PyPDF2.
     """
 
     def __init__(self):
@@ -29,13 +31,15 @@ class PDFService:
 
     def is_pdf(self, pdf_bytes: bytes) -> bool:
         """
-        Checks if the provided bytes represent a PDF file by looking for the %PDF- header.
+        Checks if the provided bytes represent a PDF file by looking 
+        for the %PDF- header.
         """
         return pdf_bytes.startswith(b"%PDF-")
 
     def extract_embedded_text(self, pdf_bytes: bytes) -> str:
         """
-        Attempts to extract text directly from a digitally generated PDF using PyPDF2.
+        Attempts to extract text directly from a digitally generated PDF 
+        using PyPDF2.
         
         Args:
             pdf_bytes (bytes): PDF file content.

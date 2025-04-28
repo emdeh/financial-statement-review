@@ -35,5 +35,3 @@ class DocumentResult(BaseModel):
         This configuration allows the model to be populated by field names
         """
         allow_population_by_field_name = True
-
-

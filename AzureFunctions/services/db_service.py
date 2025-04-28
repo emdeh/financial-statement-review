@@ -97,7 +97,7 @@ class DbService:
             mode="json",
             by_alias=True,
         )
-        
+
         # DEBUG
         if is_debug_mode():
             write_debug_file(validated_item, prefix="cosmos_validated")
