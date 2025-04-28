@@ -22,6 +22,8 @@ class EmbeddingService:
         # Initialise the JSON logger for this service
         self.logger = Logger.get_logger("EmbeddingService", json_format=True)
 
+        self.BATCH_SIZE = int(os.environ.get("BATCH_SIZE", 20))
+
         # Set up the Azure Search client
         self.search_client = SearchClient(
             endpoint=os.environ["SEARCH_ENDPOINT"],
@@ -53,41 +55,53 @@ class EmbeddingService:
             all_chunks.extend(ChunkService.chunk_text(text, page))
 
         if not all_chunks:
-            return  # nothing to do
+            self.logger.info("No chunks to index", extra={"document": document_name})
+            return
 
-        try:
-            # 2) Batch-embed them in one call
-            texts = [c["text"] for c in all_chunks]
-            resp = self.oaiclient.embeddings.create(
-                model=self.oaiclient.deployment_name,
-                input=texts
-            )
-            embeddings = [d.embedding for d in resp.data]
+        # 2) Process in batches
+        for i in range(0, len(all_chunks), self.BATCH_SIZE):
+            batch = all_chunks[i : i + self.BATCH_SIZE]
+            texts = [c["text"] for c in batch]
 
-            # 3) Prepare Search documents
-            docs = []
-            for chunk, emb in zip(all_chunks, embeddings):
-                docs.append({
-                    "id":           chunk["id"],
-                    "documentName": document_name,
-                    "page":         chunk["page"],
-                    "chunkText":    chunk["text"],
-                    "embedding":    emb,
-                    "createdAt":    datetime.datetime.utcnow().isoformat(),
-                })
+            # 3) Embed + prepare docs
+            try:
+                resp = self.oaiclient.embeddings.create(
+                    model=self.oaiclient.deployment_name,
+                    input=texts
+                )
+                embeddings = [d.embedding for d in resp.data]
 
-            # 4) Bulk upload to Azure Search
-            self.search_client.upload_documents(docs)
+                # 3) Prepare Search documents
+                docs = []
+                for chunk, emb in zip(batch, embeddings):
+                    docs.append({
+                        "id":           chunk["id"],
+                        "documentName": document_name,
+                        "page":         chunk["page"],
+                        "chunkText":    chunk["text"],
+                        "embedding":    emb,
+                        "createdAt":    datetime.datetime.utcnow().isoformat(),
+                    })
 
-        except OpenAIError as oai_err:
-            # Log at the batch level
-            self.logger.error(
-                "Batch embedding call failed: %s", str(oai_err),
-                extra={"document": document_name, "chunk_count": len(all_chunks)}
-            )
-        except Exception as e:
-            # Catch any upload errors
-            self.logger.error(
-                "Failed to index chunks to Search: %s", str(e),
-                extra={"document": document_name}
-            )
+                # 4) Upload and log each result
+                upload_results = self.search_client.upload_documents(docs)
+                for r in upload_results:
+                    self.logger.info("Upload result", extra={
+                        "id":     r.key,
+                        "status": r.status,   # e.g. "succeeded"
+                        "error":  r.error     # None if OK
+                    })
+
+
+            except OpenAIError as oai_err:
+                # Log at the batch level
+                self.logger.error(
+                    "Batch embedding call failed: %s", str(oai_err),
+                    extra={"document": document_name, "chunk_count": len(all_chunks)}
+                )
+            except Exception as e:
+                # Catch any upload errors
+                self.logger.error(
+                    "Failed to index chunks to Search: %s", str(e),
+                    extra={"document": document_name}
+                )

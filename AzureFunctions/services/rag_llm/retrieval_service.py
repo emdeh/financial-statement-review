@@ -77,7 +77,7 @@ class RetrievalService:
                 vector_queries=[vquery],
                 filter=f"documentName eq '{document_name}'",
                 select=["id", "page", "chunkText"],
-                timeout=10
+                timeout=20
             )
         except AzureError as err:
             self.logger.error(
@@ -85,6 +85,17 @@ class RetrievalService:
                 extra={"document": document_name, "query": query}
             )
             return []
+
+        for hit in results:
+            # DEBUG: log the raw hits
+            self.logger.debug(
+                "Retrieved chunk",
+                extra={
+                    "chunk_id":   hit["id"],
+                    "page":       hit["page"],
+                    "text_snip":  hit["chunkText"][:200]  # first 200 chars
+                }
+            )
 
         # 4) Return the minimal info for each hit
         return [
@@ -103,12 +114,15 @@ class RetrievalService:
         """
         # 1) retrieve relevant chunks
         chunks = self.retrieve_chunks(document_name, query)
+        print(f"Retrieved {len(chunks)} chunks for query '{query}'")
 
         # 2) build the prompt with inline citations
         prompt = f"QUESTION: {question}\n\n"
         for c in chunks:
+            print(c["text"])
             prompt += f"[Page {c['page']} | Chunk {c['id']}]\n{c['text']}\n\n"
         prompt += "Answer YES or NO. If YES, list the page number(s). Answer:"
+        print(prompt)
 
         # 3) call the chat completion endpoint
         try:
@@ -120,6 +134,7 @@ class RetrievalService:
                 ]
             )
             answer = chat_resp.choices[0].message.content.strip()
+            print(answer)
         except OpenAIError as err:
             self.logger.error(
                 "Chat completion failed: %s", str(err),
