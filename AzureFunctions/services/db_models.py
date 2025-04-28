@@ -9,7 +9,6 @@ extraction method, and validation status.
 from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, Field
-from services.debug_utils import is_debug_mode, write_debug_file
 
 class DocumentResult(BaseModel):
     """
