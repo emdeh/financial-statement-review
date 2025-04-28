@@ -6,8 +6,9 @@ Module docstring.
 import re
 import os
 from azure.search.documents import SearchClient
-from azure.search.documents.models import VectorQuery
-from azure.identity import DefaultAzureCredential
+from azure.search.documents.models import VectorizedQuery
+from azure.core.credentials import AzureKeyCredential
+from azure.core.exceptions import AzureError
 from openai import AzureOpenAI, OpenAIError
 from services.logger import Logger
 
@@ -24,42 +25,72 @@ class RetrievalService:
 
         # Set up the Azure Search client
         self.search_client = SearchClient(
-            endpoint=os.environ("SEARCH_ENDPOINT"),
-            index_name=os.environ("SEARCH_INDEX"),
-            credential=DefaultAzureCredential()
+            endpoint=os.environ["SEARCH_ENDPOINT"],
+            index_name=os.environ["SEARCH_INDEX"],
+            credential=AzureKeyCredential(os.environ["SEARCH_ADMIN_KEY"]),
+            api_version="2024-07-01"
             )
 
         # Set up the OpenAI client
         self.oaiclient = AzureOpenAI(
             api_key=os.environ["AZURE_OPENAI_API_KEY"],
-            api_version=os.environ("AZURE_OPENAI_API_VERSION"),
+            api_version=os.environ["AZURE_OPENAI_API_VERSION"],
             azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"]
         )
 
         # Bind chat deployment so the model doesn't need to be specified in each call
-        self.oaiclient.deployment_name = os.environ("AZURE_OPENAI_CHAT_DEPLOYMENT")
+        self.oaiclient.deployment_name = os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT"]
 
-        self.logger.info("Initialied AzureOpenAI & SearchClient")
+        self.logger.info("Initialised AzureOpenAI & SearchClient")
 
     def retrieve_chunks(self, document_name: str, query: str, k: int = 3):
         """
         Retrieves the top k chunks from the search index based on the query.
         """
         # 1) embed query
-        resp = self.oaiclient.embeddings.create(
-            model=os.environ["AZURE_OPENAI_EMBEDDING_MODEL"],
-            input=[query]
-        )
+        try:
+            resp = self.oaiclient.embeddings.create(
+                model=os.environ["AZURE_OPENAI_EMBEDDING_MODEL"],
+                input=[query]
+            )
+        except OpenAIError as err:
+            self.logger.error(
+                "Embedding call failed: %s", str(err),
+                extra={"document": document_name, "query": query}
+            )
+            return []
+
         qemb = resp.data[0].embedding
 
-        # 2) Vector search WITH filter on documentName
-        results = self.search_client.search(
-            search_text="*", # ignored when vector present
-            vector=VectorQuery(vector=qemb, k=k, fields=["embedding"]),
-            filter=f"documentName eq '{document_name}'", # TODO: OData filter escape issue?
-            select=["id","page","chunkText"]
+        # 2) build the vector query
+        vquery = VectorizedQuery(
+            vector=qemb,
+            fields="embedding",
+            k_nearest_neighbors=k,
+            kind="vector",
         )
-        return [{"id": r["id"], "page": r["page"], "text": r["chunkText"]} for r in results]
+
+        # 3) Vector search WITH filter on documentName
+        try:
+            results = self.search_client.search(
+                search_text="*",  # ignored when vector present
+                vector_queries=[vquery],
+                filter=f"documentName eq '{document_name}'",
+                select=["id", "page", "chunkText"],
+                timeout=10
+            )
+        except AzureError as err:
+            self.logger.error(
+                "Vector search failed: %s", str(err),
+                extra={"document": document_name, "query": query}
+            )
+            return []
+
+        # 4) Return the minimal info for each hit
+        return [
+            {"id": r["id"], "page": r["page"], "text": r["chunkText"]}
+            for r in results
+        ]
 
     def ask_with_citations(self,
                         document_name: str,
