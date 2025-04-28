@@ -140,4 +140,3 @@ class OcrService:
             lines = [ln.get("text", "") for ln in page.get("lines", [])]
             page_texts[idx] = "\n".join(lines)
         return page_texts
-

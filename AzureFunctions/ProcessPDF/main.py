@@ -215,7 +215,7 @@ def main(myblob: func.InputStream):
             question="Does this doc contain a profit or loss statement?",
             query="profit or loss statement"
         )
-        
+
         # 3) Build your final payload by merging RAG results
         results_payload = {
             "isPDF": is_pdf,
