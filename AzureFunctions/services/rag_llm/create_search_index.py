@@ -4,7 +4,7 @@ Module docstring.
 """
 
 import os
-from azure.identity import DefaultAzureCredential
+from azure.core.credentials import AzureKeyCredential
 from azure.search.documents.indexes import SearchIndexClient
 from azure.search.documents.indexes.models import (
     SearchIndex,
@@ -17,8 +17,9 @@ from azure.search.documents.indexes.models import (
 )
 
 
-endpoint   = os.getenv("SEARCH_ENDPOINT")
-index_name = os.getenv("SEARCH_INDEX")
+endpoint = os.environ["SEARCH_ENDPOINT"]
+admin_key = os.environ["SEARCH_ADMIN_KEY"]
+index_name = os.environ["SEARCH_INDEX"]
 
 fields = [
     SimpleField(name="id",            type=SearchFieldDataType.String, key=True),
@@ -33,7 +34,7 @@ fields = [
         filterable=False,
         sortable=False,
         facetable=False,
-        dimensions=1536  # match your embedding model
+        dimensions=1536
     )
 ]
 
@@ -49,6 +50,6 @@ index = SearchIndex(
     vector_search=vector_search
 )
 
-client = SearchIndexClient(endpoint, credential=DefaultAzureCredential())
+client = SearchIndexClient(endpoint, credential=AzureKeyCredential(admin_key))
 client.create_or_update_index(index)
 print(f"Index '{index_name}' is ready.")

@@ -32,13 +32,12 @@ class EmbeddingService:
         # Set up the OpenAI client
         self.oaiclient = AzureOpenAI(
             api_key=os.environ["AZURE_OPENAI_API_KEY"],
-            api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2023-05-15"),
-            # TODO: Make this the same as the version deployed.
+            api_version=os.environ("AZURE_OPENAI_API_VERSION"),
             azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"]
         )
 
         # Bind embedding deployment so the model doesn't need to be specified in each call
-        self.oaiclient.deployment_name = os.environ["AZURE_OPENAI_EMBEDDING_DEPLOYMENT_ID"]
+        self.oaiclient.deployment_name = os.environ["AZURE_OPENAI_EMBEDDING_DEPLOYMENT"]
 
         self.logger.info("Initialied AzureOpenAI & SearchClient")
 
