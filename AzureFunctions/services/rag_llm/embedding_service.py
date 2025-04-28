@@ -22,7 +22,8 @@ class EmbeddingService:
         # Initialise the JSON logger for this service
         self.logger = Logger.get_logger("EmbeddingService", json_format=True)
 
-        self.BATCH_SIZE = int(os.environ.get("BATCH_SIZE", 20))
+        self.batch_size = int(os.environ.get("BATCH_SIZE", 20))
+        self.logger.info("Using embedding batch size %s", self.batch_size)
 
         # Set up the Azure Search client
         self.search_client = SearchClient(
@@ -50,17 +51,13 @@ class EmbeddingService:
         batching embeddings in a single API call for efficiency.
         """
         # 1) Build a flat list of all chunks
-        all_chunks = []
+        chunks = []
         for page, text in page_texts.items():
-            all_chunks.extend(ChunkService.chunk_text(text, page))
-
-        if not all_chunks:
-            self.logger.info("No chunks to index", extra={"document": document_name})
-            return
+            chunks.extend(ChunkService.chunk_text(text, page))
 
         # 2) Process in batches
-        for i in range(0, len(all_chunks), self.BATCH_SIZE):
-            batch = all_chunks[i : i + self.BATCH_SIZE]
+        for i in range(0, len(chunks), self.batch_size):
+            batch = chunks[i : i + self.batch_size]
             texts = [c["text"] for c in batch]
 
             # 3) Embed + prepare docs
@@ -69,35 +66,34 @@ class EmbeddingService:
                     model=self.oaiclient.deployment_name,
                     input=texts
                 )
-                embeddings = [d.embedding for d in resp.data]
+                embeddings_list = [d.embedding for d in resp.data]
 
                 # 3) Prepare Search documents
                 docs = []
-                for chunk, emb in zip(batch, embeddings):
+                for c, emb in zip(batch, embeddings_list):
                     docs.append({
-                        "id":           chunk["id"],
+                        "id":           c["id"],
                         "documentName": document_name,
-                        "page":         chunk["page"],
-                        "chunkText":    chunk["text"],
+                        "page":         c["text"],
+                        "chunkText":    c["text"],
                         "embedding":    emb,
                         "createdAt":    datetime.datetime.utcnow().isoformat(),
                     })
 
                 # 4) Upload and log each result
-                upload_results = self.search_client.upload_documents(docs)
-                for r in upload_results:
-                    self.logger.info("Upload result", extra={
-                        "id":     r.key,
-                        "status": r.status,   # e.g. "succeeded"
-                        "error":  r.error     # None if OK
-                    })
+                self.search_client.upload_documents(docs)
+                self.logger.info(
+                    "Indexed chunks %s - %s",
+                    batch[0]["id"], batch[-1]["id"],
+                    extra={"batchSize": len(batch), "document": document_name}
+                )
 
 
             except OpenAIError as oai_err:
                 # Log at the batch level
                 self.logger.error(
                     "Batch embedding call failed: %s", str(oai_err),
-                    extra={"document": document_name, "chunk_count": len(all_chunks)}
+                    extra={"document": document_name, "chunk_count": len(chunks)}
                 )
             except Exception as e:
                 # Catch any upload errors

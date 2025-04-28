@@ -198,50 +198,48 @@ def main(myblob: func.InputStream):
 
         # --- RAG+LLM INTEGRATION POINT ---
 
-        # 1) Index page-level chunks into the vector store:
-        embedding_service = EmbeddingService()
-        embedding_service.index_chunks(
-            document_name=myblob.name,
-            page_texts=extraction_pages
-        )
-
-        # 2) Run specific checks via RetrievalService
-        retrieval_service = RetrievalService()
-
-        # Profit & Loss Statement check example
-        pl = retrieval_service.ask_with_citations(
-            document_name=myblob.name,
-            check_name="Profit or Loss Statement",
-            question="Does this doc contain a profit or loss statement?",
-            query="profit or loss statement"
-        )
-
-        # 3) Build your final payload by merging RAG results
-        results_payload = {
-            "isPDF": is_pdf,
-            "pageCount": page_count,
-            "blobUrl": myblob.uri,
-            "extractionMethod": extraction_method,
-            "isValidAFS": classification_result["is_valid_afs"],
-            "afsConfidence": classification_result["afs_confidence"],
-            "hasABN": has_abn,
-            "ABN": abn_value,
-            "hasProfitLoss": pl["answer"].upper().startswith("YES"),
-            "profitLossPages": pl["citations"],
-        }
-
-        # Write results to database
-        try:
-            db.store_results(
+        if os.getenv("ENABLE_RAG", "false").lower() == "true":
+            embedding_service = EmbeddingService()
+            embedding_service.index_chunks(
                 document_name=myblob.name,
-                data=results_payload
+                page_texts=extraction_pages
+                )
+
+            retrieval_service = RetrievalService()
+
+            pl = retrieval_service.ask_with_citations(
+                document_name=myblob.name,
+                check_name="Profit or Loss Statement",
+                question="Does this doc contain a profit or loss statement?",
+                query="profit or loss statement"
             )
-        except Exception as e:
-            logger.error("Error storing results in Cosmos DB",
-            extra={
-                "error": str(e)
-                })
-            return
+            
+            # 3) Build your final payload by merging RAG results
+            results_payload = {
+                "isPDF": is_pdf,
+                "pageCount": page_count,
+                "blobUrl": myblob.uri,
+                "extractionMethod": extraction_method,
+                "isValidAFS": classification_result["is_valid_afs"],
+                "afsConfidence": classification_result["afs_confidence"],
+                "hasABN": has_abn,
+                "ABN": abn_value,
+                "hasProfitLoss": pl["answer"].upper().startswith("YES"),
+                "profitLossPages": pl["citations"],
+            }
+
+            # Write results to database
+            try:
+                db.store_results(
+                    document_name=myblob.name,
+                    data=results_payload
+                )
+            except Exception as e:
+                logger.error("Error storing results in Cosmos DB",
+                extra={
+                    "error": str(e)
+                    })
+                return
 
         # Optionally, add more details to the span if needed.
         span.add_attribute("blob_name", myblob.name)
