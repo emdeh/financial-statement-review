@@ -211,7 +211,8 @@ def main(myblob: func.InputStream):
                 document_name=myblob.name,
                 check_name="Profit or Loss Statement",
                 question="Does this doc contain a profit or loss statement?",
-                query="profit or loss statement"
+                query="profit or loss statement",
+                k=5
             )
             
             # 3) Build your final payload by merging RAG results

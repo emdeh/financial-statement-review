@@ -61,6 +61,7 @@ class RetrievalService:
             return []
 
         qemb = resp.data[0].embedding
+        
 
         # 2) build the vector query
         vquery = VectorizedQuery(
@@ -72,12 +73,17 @@ class RetrievalService:
 
         # 3) Vector search WITH filter on documentName
         try:
+            escaped_name = document_name.replace("'", "''")
+            print(f"Escaped name: {escaped_name}")
+            odata_filter = f"documentName eq '{escaped_name}'" # must be single quotes
+            print(f"Filter: {odata_filter}")
+            
             results = self.search_client.search(
-                search_text="*",  # ignored when vector present
+                search_text="*",  # wildcard so lexical filter is bypassed
                 vector_queries=[vquery],
-                filter=f"documentName eq '{document_name}'",
+                filter=odata_filter,
                 select=["id", "page", "chunkText"],
-                timeout=20
+                timeout=20,
             )
         except AzureError as err:
             self.logger.error(
@@ -107,13 +113,14 @@ class RetrievalService:
                         document_name: str,
                         check_name: str,
                         question: str,
-                        query: str):
+                        query: str,
+                        k: int = 3):
         """
         Retrieve top-k chunks for `document_name` matching `query`, then
         ask the AzureOpenAI chat deployment to answer YES/NO + cite pages.
         """
         # 1) retrieve relevant chunks
-        chunks = self.retrieve_chunks(document_name, query)
+        chunks = self.retrieve_chunks(document_name, query, k)
         print(f"Retrieved {len(chunks)} chunks for query '{query}'")
 
         # 2) build the prompt with inline citations
