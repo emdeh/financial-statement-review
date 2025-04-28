@@ -22,19 +22,19 @@ class RetrievalService:
         # Initialise the JSON logger for this service
         self.logger = Logger.get_logger("RetrievalService", json_format=True)
 
-        self.search = SearchClient(endpoint=os.environ.get("SEARCH_ENDPOINT"),
-                                   index_name=os.environ.get("SEARCH_INDEX"),
+        self.search = SearchClient(endpoint=os.environ("SEARCH_ENDPOINT"),
+                                   index_name=os.environ("SEARCH_INDEX"),
                                    credential=DefaultAzureCredential()
                                    )
         # Set up the OpenAI client
         self.oaiclient = AzureOpenAI(
             api_key=os.environ["AZURE_OPENAI_API_KEY"],
-            api_version=os.environ.get("AZURE_OPENAI_API_VERSION", "2023-05-15"), # TODO: Make this the same as the version deployed.
+            api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2023-05-15"), # TODO: Make this the same as the version deployed.
             azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"]
         )
 
         # Bind chat deployment so the model doesn't need to be specified in each call
-        self.oaiclient.deployment_name = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT_ID")
+        self.oaiclient.deployment_name = os.environ("AZURE_OPENAI_CHAT_DEPLOYMENT_ID")
 
     def retrieve_chunks(self, document_name: str, query: str, k: int = 3):
         """
@@ -77,7 +77,7 @@ class RetrievalService:
         # 3) call the chat completion endpoint
         try:
             chat_resp = self.oaiclient.chat.completions.create(
-                model=self.chat_deployment,
+                model=self.oaiclient.deployment_name,
                 messages=[
                     {"role": "system", "content": "You are a precise assistant."},
                     {"role": "user",   "content": prompt}

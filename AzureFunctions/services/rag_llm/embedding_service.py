@@ -25,7 +25,7 @@ class EmbeddingService:
         # Set up the OpenAI client
         self.oaiclient = AzureOpenAI(
             api_key=os.environ["AZURE_OPENAI_API_KEY"],
-            api_version=os.environ.get("AZURE_OPENAI_API_VERSION", "2023-05-15"), # TODO: Make this the same as the version deployed.
+            api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2023-05-15"), # TODO: Make this the same as the version deployed.
             azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"]
         )
 
@@ -68,4 +68,3 @@ class EmbeddingService:
                                       extra={"chunk_id": chunk["id"], "page": page})
 
 # TODO: Consider collecting, batching chunks and then calling `upload_documents` to reduce API calls.
-# TODO: Consider using os.getenv instead of os.environ.get for better readability.
