@@ -113,18 +113,15 @@ def main(myblob: func.InputStream):
             )
 
         # First attempt to extract embedded text for digitally generated PDFs
-        embedded_text = pdf_service.extract_embedded_text(pdf_bytes)
+        embedded_pages = pdf_service.extract_embedded_text(pdf_bytes)
 
-        if embedded_text:
+        if embedded_pages:
             extraction_method = "embedded"
             logger.info("Extraction complete using %s method",extraction_method,
             extra={
                 "method": extraction_method,
-                "extracted_text": embedded_text
                 })
-
-            logger.info("Extraction output length is %s", len(embedded_text))
-            page_text = embedded_text
+            extraction_pages = embedded_pages
 
         else:
             extraction_method = "OCR"
@@ -132,14 +129,12 @@ def main(myblob: func.InputStream):
 
             # Extract using OCR
             try:
-                page_text = OcrService().extract_text(pdf_bytes)
+                ocr_pages = OcrService().extract_text(pdf_bytes)
                 logger.info("Extraction complete using %s method", extraction_method,
                 extra={
                     "method": extraction_method,
-                    "extracted_text": page_text
                     })
-
-                logger.info("Extraction output length is %s", len(page_text))
+                extraction_pages = ocr_pages
 
             except OcrServiceError as e:
                 logger.error("Error extracting text from PDF using %s", extraction_method,
@@ -149,7 +144,8 @@ def main(myblob: func.InputStream):
                 return
 
         # 3) ABN detection
-        abn_value = pdf_service.find_abn(page_text)
+        full_text = "\n".join(extraction_pages.values())
+        abn_value = pdf_service.find_abn(full_text)
         has_abn = abn_value is not None
 
         logger.info(
@@ -170,7 +166,7 @@ def main(myblob: func.InputStream):
         # DEBUG
         if is_debug_mode():
             # Write the extracted text to a debug file
-            debug_file = write_debug_file(page_text, prefix="ocr_output")
+            debug_file = write_debug_file(extraction_pages, prefix="ocr_output")
             logger.info("DEBUG ON - Debug file written",
             extra={
                 "method": extraction_method,
@@ -182,7 +178,7 @@ def main(myblob: func.InputStream):
         # Continue processing (e.g., parse text, send to ML, etc)
 
         # Simulate ML model classification
-        classification_result = simulate_ml_classification(page_text)
+        classification_result = simulate_ml_classification(full_text)
         logger.info(
             "ML classification complete",
             extra={"classification_result": classification_result})
