@@ -42,11 +42,11 @@ class EmbeddingService:
 
         self.logger.info("Initialied AzureOpenAI & SearchClient")
 
-    def index_chunks(self, document_name: str, ocr_pages: dict[int, str]):
+    def index_chunks(self, document_name: str, page_texts: dict[int, str]):
         """
         Docstring
         """
-        for page, text in ocr_pages.items():
+        for page, text in page_texts.items():
             for chunk in ChunkService.chunk_text(text, page):
                 try:
                     resp = self.oaiclient.embeddings.create(

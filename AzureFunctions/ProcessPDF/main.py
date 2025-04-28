@@ -197,47 +197,44 @@ def main(myblob: func.InputStream):
                 })
 
         # --- RAG+LLM INTEGRATION POINT ---
-        # 1) Assemble a dict of page→text for RAG:
-        #     ocr_pages = {1: text_page1, 2: text_page2, …}
-        #
-        # 2) Index those chunks into your vector store:
-        #     # EmbeddingService().index_chunks(myblob.name, ocr_pages)
-        #
-        # 3) For each check, run retrieval+LLM:
-        #     # pl = RetrievalService().ask_with_citations(
-        #     #     document_name=myblob.name,
-        #     #     check_name="Profit or Loss Statement",
-        #     #     question="Does this doc contain a profit or loss statement?",
-        #     #     query="profit or loss statement"
-        #     # )
-        #     # cf = RetrievalService().ask_with_citations(…)
-        #
-        # 4) Attach those YES/NO + citation pages into your data payload:
-        #     # data["hasProfitLoss"]   = pl["answer"].startswith("YES")
-        #     # data["profitLossPages"] = pl["citations"]
-        #     # data["hasCashFlow"]     = cf["answer"].startswith("YES")
-        #     # data["cashFlowPages"]   = cf["citations"]
-        # --- END RAG+LLM INTEGRATION POINT ---
+
+        # 1) Index page-level chunks into the vector store:
+        embedding_service = EmbeddingService()
+        embedding_service.index_chunks(
+            document_name=myblob.name,
+            page_texts=extraction_pages
+        )
+
+        # 2) Run specific checks via RetrievalService
+        retrieval_service = RetrievalService()
+
+        # Profit & Loss Statement check example
+        pl = retrieval_service.ask_with_citations(
+            document_name=myblob.name,
+            check_name="Profit or Loss Statement",
+            question="Does this doc contain a profit or loss statement?",
+            query="profit or loss statement"
+        )
+        
+        # 3) Build your final payload by merging RAG results
+        results_payload = {
+            "isPDF": is_pdf,
+            "pageCount": page_count,
+            "blobUrl": myblob.uri,
+            "extractionMethod": extraction_method,
+            "isValidAFS": classification_result["is_valid_afs"],
+            "afsConfidence": classification_result["afs_confidence"],
+            "hasABN": has_abn,
+            "ABN": abn_value,
+            "hasProfitLoss": pl["answer"].upper().startswith("YES"),
+            "profitLossPages": pl["citations"],
+        }
 
         # Write results to database
         try:
             db.store_results(
                 document_name=myblob.name,
-                data={
-                    "isPDF": pdf_service.is_pdf(pdf_bytes),
-                    "pageCount": page_count,
-                    "blobUrl": myblob.uri,
-                    "extractionMethod": extraction_method,
-                    "isValidAFS": classification_result["is_valid_afs"],
-                    "afsConfidence": classification_result["afs_confidence"],
-                    "hasABN": has_abn,
-                    "ABN": abn_value
-                    # PLACEHOLDERS from above:
-                    # "hasProfitLoss": ...,
-                    # "profitLossPages": ...
-                    # "hasCashFlow": ...,
-                    # "cashFlowPages": ...
-                }
+                data=results_payload
             )
         except Exception as e:
             logger.error("Error storing results in Cosmos DB",
