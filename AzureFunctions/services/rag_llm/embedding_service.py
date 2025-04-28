@@ -22,12 +22,14 @@ class EmbeddingService:
         # Initialise the JSON logger for this service
         self.logger = Logger.get_logger("EmbeddingService", json_format=True)
 
+        # Set up the OpenAI client
         self.oaiclient = AzureOpenAI(
             api_key=os.environ["AZURE_OPENAI_API_KEY"],
-            api_version=os.environ.get("AZURE_OPENAI_API_VERSION", "2023-05-15")
+            api_version=os.environ.get("AZURE_OPENAI_API_VERSION", "2023-05-15"), # TODO: Make this the same as the version deployed.
+            azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"]
         )
-        self.oaiclient.api_base = os.environ["AZURE_OPENAI_ENDPOINT"]
 
+        # Bind embedding deployment so the model doesn't need to be specified in each call
         self.oaiclient.deployment_name = os.environ["AZURE_OPENAI_EMBEDDING_DEPLOYMENT_ID"]
 
         self.search_client = SearchClient(
@@ -45,7 +47,7 @@ class EmbeddingService:
             for chunk in ChunkService.chunk_text(text, page):
                 try:
                     resp = self.oaiclient.embeddings.create(
-                        model=os.environ["AZURE_OPENAI_EMBEDDING_MODEL"],
+                        model=self.oaiclient.deployment_name,
                         input=[chunk["text"]]
                     )
                     emb = resp.data[0].embedding

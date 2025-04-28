@@ -34,8 +34,7 @@ class RetrievalService:
         )
 
         # Bind chat deployment so the model doesn't need to be specified in each call
-        self.chat_deployment = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT_ID")
-        self.oaiclient.deployment_name = self.chat_deployment
+        self.oaiclient.deployment_name = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT_ID")
 
     def retrieve_chunks(self, document_name: str, query: str, k: int = 3):
         """
