@@ -1,9 +1,9 @@
 """
-services/rag_llm/create_search_index.py
-Module docstring.
+infra/scripts/create_search_index.py
 """
 
 import os
+from dotenv import load_dotenv
 from azure.core.credentials import AzureKeyCredential
 from azure.search.documents.indexes import SearchIndexClient
 from azure.search.documents.indexes.models import (
@@ -16,7 +16,8 @@ from azure.search.documents.indexes.models import (
     VectorSearchAlgorithmConfiguration
 )
 
-
+# Load environment variables from .env file
+load_dotenv()
 endpoint = os.environ["SEARCH_ENDPOINT"]
 admin_key = os.environ["SEARCH_ADMIN_KEY"]
 index_name = os.environ["SEARCH_INDEX"]
