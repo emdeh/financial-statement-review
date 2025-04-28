@@ -3,9 +3,6 @@ services/rag_llm/chunk_service.py
 Module docstring.
 """
 
-import re
-import os
-
 class ChunkService:
     """
     Class docstring.
@@ -50,4 +47,3 @@ class ChunkService:
             start = end - ChunkService.OVERLAP
 
         return chunks
-        
