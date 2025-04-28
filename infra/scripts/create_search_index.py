@@ -23,6 +23,13 @@ endpoint = os.environ["SEARCH_ENDPOINT"]
 admin_key = os.environ["SEARCH_ADMIN_KEY"]
 index_name = os.environ["SEARCH_INDEX"]
 
+client = SearchIndexClient(endpoint, credential=AzureKeyCredential(admin_key))
+
+# 1) Delete existing index if it exists
+if index_name in client.list_index_names():
+    client.delete_index(index_name)  # Deletes the index and all its documents :contentReference[oaicite:2]{index=2}
+
+# 2) Define fields and VectorSearch exactly as before
 fields = [
     SimpleField(name="id",            type=SearchFieldDataType.String, key=True),
     SimpleField(name="documentName",  type=SearchFieldDataType.String, filterable=True),
