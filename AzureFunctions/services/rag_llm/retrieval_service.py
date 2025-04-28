@@ -22,10 +22,13 @@ class RetrievalService:
         # Initialise the JSON logger for this service
         self.logger = Logger.get_logger("RetrievalService", json_format=True)
 
-        self.search = SearchClient(endpoint=os.environ("SEARCH_ENDPOINT"),
-                                   index_name=os.environ("SEARCH_INDEX"),
-                                   credential=DefaultAzureCredential()
-                                   )
+        # Set up the Azure Search client
+        self.search_client = SearchClient(
+            endpoint=os.environ("SEARCH_ENDPOINT"),
+            index_name=os.environ("SEARCH_INDEX"),
+            credential=DefaultAzureCredential()
+            )
+        
         # Set up the OpenAI client
         self.oaiclient = AzureOpenAI(
             api_key=os.environ["AZURE_OPENAI_API_KEY"],
@@ -35,6 +38,8 @@ class RetrievalService:
 
         # Bind chat deployment so the model doesn't need to be specified in each call
         self.oaiclient.deployment_name = os.environ("AZURE_OPENAI_CHAT_DEPLOYMENT_ID")
+
+        self.logger.info("Initialied AzureOpenAI & SearchClient")
 
     def retrieve_chunks(self, document_name: str, query: str, k: int = 3):
         """
@@ -48,7 +53,7 @@ class RetrievalService:
         qemb = resp.data[0].embedding
 
         # 2) Vector search WITH filter on documentName
-        results = self.search.search(
+        results = self.search_client.search(
             search_text="*", # ignored when vector present
             vector=VectorQuery(vector=qemb, k=k, fields=["embedding"]),
             filter=f"documentName eq '{document_name}'", # TODO: OData filter escape issue?

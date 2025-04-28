@@ -22,6 +22,13 @@ class EmbeddingService:
         # Initialise the JSON logger for this service
         self.logger = Logger.get_logger("EmbeddingService", json_format=True)
 
+        # Set up the Azure Search client
+        self.search_client = SearchClient(
+            endpoint=os.environ["SEARCH_ENDPOINT"],
+            index_name=os.environ["SEARCH_INDEX"],
+            credential=DefaultAzureCredential()
+            )
+
         # Set up the OpenAI client
         self.oaiclient = AzureOpenAI(
             api_key=os.environ["AZURE_OPENAI_API_KEY"],
@@ -32,12 +39,7 @@ class EmbeddingService:
         # Bind embedding deployment so the model doesn't need to be specified in each call
         self.oaiclient.deployment_name = os.environ["AZURE_OPENAI_EMBEDDING_DEPLOYMENT_ID"]
 
-        self.search_client = SearchClient(
-            endpoint=os.environ["SEARCH_ENDPOINT"],
-            index_name=os.environ["SEARCH_INDEX"],
-            credential=DefaultAzureCredential()
-        )
-        self.logger.info("Initialized AzureOpenAI & SearchClient")
+        self.logger.info("Initialied AzureOpenAI & SearchClient")
 
     def index_chunks(self, document_name: str, ocr_pages: dict[int, str]):
         """
