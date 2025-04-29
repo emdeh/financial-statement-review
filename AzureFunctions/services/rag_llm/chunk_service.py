@@ -7,7 +7,7 @@ class ChunkService:
     """
     Class docstring.
     """
-    CHUNK_SIZE = 500 # max chars per chunk
+    CHUNK_SIZE = 1000 # max chars per chunk
     OVERLAP = 200 # chars to overlap
 
     @staticmethod

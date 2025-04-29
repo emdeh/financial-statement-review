@@ -9,6 +9,7 @@
         myblob (func.InputStream): The input blob stream that triggered the function.
 """
 import os
+import time
 import azure.functions as func
 from services.logger import Logger
 from services.tracer import AppTracer
@@ -55,6 +56,7 @@ def main(myblob: func.InputStream):
     Main entry point for the Azure Function.
     """
     with tracer.span(name="ProcessPDFOperation") as span:
+        
         # Log the beginning of the blob processing operation, including extra context.
         logger.info("Blob trigger function processed %s", myblob.name,
         extra={
@@ -198,49 +200,52 @@ def main(myblob: func.InputStream):
 
         # --- RAG+LLM INTEGRATION POINT ---
 
-        if os.getenv("ENABLE_RAG", "false").lower() == "true":
-            embedding_service = EmbeddingService()
-            embedding_service.index_chunks(
-                document_name=myblob.name,
-                page_texts=extraction_pages
-                )
-
-            retrieval_service = RetrievalService()
-
-            pl = retrieval_service.ask_with_citations(
-                document_name=myblob.name,
-                check_name="Profit or Loss Statement",
-                question="Does this doc contain a profit or loss statement?",
-                query="profit or loss statement",
-                k=5
+        
+        embedding_service = EmbeddingService()
+        embedding_service.index_chunks(
+            document_name=myblob.name,
+            page_texts=extraction_pages
             )
-            
-            # 3) Build your final payload by merging RAG results
-            results_payload = {
-                "isPDF": is_pdf,
-                "pageCount": page_count,
-                "blobUrl": myblob.uri,
-                "extractionMethod": extraction_method,
-                "isValidAFS": classification_result["is_valid_afs"],
-                "afsConfidence": classification_result["afs_confidence"],
-                "hasABN": has_abn,
-                "ABN": abn_value,
-                "hasProfitLoss": pl["answer"].upper().startswith("YES"),
-                "profitLossPages": pl["citations"],
-            }
 
-            # Write results to database
-            try:
-                db.store_results(
-                    document_name=myblob.name,
-                    data=results_payload
-                )
-            except Exception as e:
-                logger.error("Error storing results in Cosmos DB",
-                extra={
-                    "error": str(e)
-                    })
-                return
+        # Add a delay of 20 seconds to allow for indexing
+        time.sleep(20)
+
+        retrieval_service = RetrievalService()
+
+        pl = retrieval_service.ask_with_citations(
+            document_name=myblob.name,
+            check_name="Profit or Loss Statement",
+            question="Does this doc contain a profit or loss statement?",
+            query="profit or loss statement",
+            k=5
+        )
+            
+        # 3) Build your final payload by merging RAG results
+        results_payload = {
+            "isPDF": is_pdf,
+            "pageCount": page_count,
+            "blobUrl": myblob.uri,
+            "extractionMethod": extraction_method,
+            "isValidAFS": classification_result["is_valid_afs"],
+            "afsConfidence": classification_result["afs_confidence"],
+            "hasABN": has_abn,
+            "ABN": abn_value,
+            "hasProfitLoss": pl["answer"].upper().startswith("YES"),
+            "profitLossPages": pl["citations"],
+        }
+
+        # Write results to database
+        try:
+            db.store_results(
+                document_name=myblob.name,
+                data=results_payload
+            )
+        except Exception as e:
+            logger.error("Error storing results in Cosmos DB",
+            extra={
+                "error": str(e)
+                })
+            return
 
         # Optionally, add more details to the span if needed.
         span.add_attribute("blob_name", myblob.name)

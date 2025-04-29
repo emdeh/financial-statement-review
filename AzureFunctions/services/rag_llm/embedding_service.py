@@ -74,7 +74,7 @@ class EmbeddingService:
                     docs.append({
                         "id":           c["id"],
                         "documentName": document_name,
-                        "page":         c["text"],
+                        "page":         c["page"],
                         "chunkText":    c["text"],
                         "embedding":    emb,
                         "createdAt":    datetime.datetime.utcnow().isoformat(),
