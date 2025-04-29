@@ -1,54 +1,71 @@
-# Sizing estimator
+# Sizing Estimator
 
-Please review the [Sizing Estimator](https://azure.com/e/8dabebdeac3443399f1eedc97383f4da) to help find the potential operating costs.
+To evaluate the potential operating costs for the solution, please use the [Sizing Estimator](https://azure.com/e/8dabebdeac3443399f1eedc97383f4da). Below are clearly explained assumptions and parameters you can input into the estimator to tailor cost projections to your specific scenario.
 
-## Assumptions
-The following outlines the assumptions you should be aware of in the Sizing Estimator. Adjust them in Microsoft's calculator as required.
+---
+
+## Assumptions and Parameters
 
 ### Azure AI Computer Vision
-- **Transactions:** 1000  
-    This refers to the number of API calls made to the Azure AI Computer Vision service.
 
-- **Training:** 10 hours  
-    This refers to the time spent training custom models using the Azure AI Computer Vision service.
+- **Transactions per month:** 1,000  
+  Represents the total monthly volume of documents processed by Azure's Computer Vision service.
+
+- **Training hours per month:** 10 hours  
+  Time dedicated monthly for training or improving custom vision models.
 
 ---
 
 ### Azure Cosmos DB
-- **Request Units (RU/s):** 500
-- **Average utilisation:** 80%
-- **Hours:** 730
-- **Backup copies:** 2
 
-    To estimate the Request Units (RU/s) for simple table rows being written, consider the following:
+- **Request Units (RU/s):** 500  
+  Measures the throughput capacity of Cosmos DB. A Request Unit (RU) quantifies the resources required to perform database operations (reads, writes, queries).
 
-    - **Base RU Consumption:** Writing a single 1 KB item typically consumes 5 RU/s.
-    - **Item Size:** If the item size exceeds 1 KB, RU consumption increases proportionally. For example, a 2 KB item would consume approximately 10 RU/s.
-    - **Indexing:** By default, Azure Cosmos DB indexes all properties. If you disable or customise indexing, RU consumption may decrease.
-    - **Consistency Level:** Stronger consistency levels (e.g., Strong or Bounded Staleness) may increase RU consumption compared to Session or Eventual consistency.
-    - **Partition Key Design:** Efficient partition key design ensures even distribution of data and avoids hot partitions, optimizing RU usage.
+- **Average Utilisation:** 80%  
+  Represents the expected average utilisation of provisioned RU/s.
 
-    Use the [Azure Cosmos DB Capacity Calculator](https://cosmos.azure.com/capacitycalculator/) to refine your estimate based on your specific workload.
+- **Hours per month:** 730  
+  Total hours Cosmos DB service will be active monthly.
+
+- **Backup Copies:** 2  
+  Number of copies of data maintained for redundancy.
+
+**Factors influencing RU consumption:**
+- **Data Size:** A 1 KB data record typically consumes around 5 RU/s. Larger items proportionally consume more RUs.
+- **Indexing:** Default indexing increases RU usage. Custom indexing reduces consumption.
+- **Consistency Level:** Higher consistency (e.g., Strong) may consume more resources compared to lower levels (e.g., Eventual).
+- **Partition Key Design:** Effective design evenly distributes data and optimises RU usage.
+
+To refine estimates, use the [Azure Cosmos DB Capacity Calculator](https://cosmos.azure.com/capacitycalculator/).
+
 ---
 
-### Azure Function
-- **Memory Size:**
-- **Execution time:**
-- **Executions per month:**
+### Azure Functions
+
+- **Memory Size (GB):** Specify the amount of memory allocated per function execution.
+- **Execution Time (Seconds):** Average time each function runs per execution.
+- **Executions per month:** Expected monthly frequency of function triggers.
 
 ---
 
-### Azure AI Search with Vector index
+### Azure AI Search (with Vector Index)
 
-...
+- **Number of Documents Indexed:** Total documents stored in AI Search.
+- **Average Size per Document:** Average document size to determine storage and indexing costs.
+- **Queries per month:** Estimated monthly search requests to retrieve information from the indexed documents.
 
 ---
 
 ### Azure OpenAI Service
 
-- **Embeddings Model:**
-- **Chat Completion Model:**
+- **Embeddings Model:**  
+  - **Number of Embeddings Requests per month:** How frequently document chunks are converted into embeddings.
+  - **Average Tokens per Embedding:** The average length of text processed for embeddings.
 
-...
+- **Chat Completion Model:**  
+  - **Chat Completion Requests per month:** Monthly queries made to the model for information extraction or validation.
+  - **Average Tokens per Request:** Length of text per request, including both query and response from the model.
 
 ---
+
+These clearly defined assumptions will help you accurately project costs based on your expected usage and easily adjust your scenarios as required.
