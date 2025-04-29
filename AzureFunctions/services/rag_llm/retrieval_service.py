@@ -106,6 +106,8 @@ class RetrievalService:
             # and return without re-fetching.
             #
             # I hope this comment helps avoid some heartache for future readers.
+            # The one who plants trees, knowing that he will never sit in their 
+            # shade, has at least started to understand the meaning of life...
 
             results = list(paged) # For the love of God, materialise this iterator!
             self.logger.info(
