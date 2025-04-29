@@ -48,38 +48,21 @@ class RetrievalService:
         """
         Retrieves the top k chunks from the search index based on the query.
         """
-        # — Smoke test A: total docs in the index
-        #total = self.search_client.get_document_count()
-        #self.logger.info(f" Total docs in index: {total}")
 
-        # — Smoke test B: docs for this document_name
-        #escaped = document_name.replace("'", "''")
-        #filt = f"documentName eq '{escaped}'"
-
-        #results = self.search_client.search(
-        #    search_text="*",
-        #    filter=filt,
-        #    include_total_count=True,
-        #    top=0
-        #)
-        #doc_count = results.get_count()
-        #self.logger.info(f"🔍 Chunks for '{document_name}': {doc_count}")
-
-        # 1) embed query
+        # 1) Embed the user query
         try:
             resp = self.oaiclient.embeddings.create(
                 model=os.environ["AZURE_OPENAI_EMBEDDING_MODEL"],
                 input=[query]
             )
+            qemb = resp.data[0].embedding
+
         except OpenAIError as err:
             self.logger.error(
                 "Embedding call failed: %s", str(err),
                 extra={"document": document_name, "query": query}
             )
             return []
-
-        qemb = resp.data[0].embedding
-        
 
         # 2) build the vector query
         vquery = VectorizedQuery(
@@ -89,26 +72,26 @@ class RetrievalService:
             kind="vector",
         )
 
+        # 3) Prepare the documentName filter
+        escaped = document_name.replace("'", "''")
+        odata_filter = f"documentName eq '{escaped}'"
 
-        # 3) Vector search WITH filter on documentName
+        # 4) Execute filtered vector search
         try:
-            #escaped_name = document_name.replace("'", "''")
-            #print(f"Escaped name: {escaped_name}")
-            #odata_filter = f"documentName eq '{escaped_name}'" # must be single quotes
-            #print(f"Filter: {odata_filter}")
-            
             paged = self.search_client.search(
                 search_text="*",  # wildcard so lexical filter is bypassed
                 vector_queries=[vquery],
+                filter=odata_filter,
+                select=["id", "page", "chunkText"],
+                timeout=20,
                 top=k
-                #filter=odata_filter,
-                #select=["id", "page", "chunkText"],
-                #timeout=20,
             )
 
-            results = list(paged)
-
-            self.logger.info("▶️ Pure vector hits: %s", [r["id"] for r in results])
+            results = list(paged) # Materialize the iterator
+            self.logger.info(
+                "Retrieved %d chunk(s) for '%s'", 
+            len(results), document_name
+        )
 
         except AzureError as err:
             self.logger.error(
@@ -117,6 +100,8 @@ class RetrievalService:
             )
             return []
 
+        # 5) (Optional) Debug each hit
+        """
         for hit in results:
             # DEBUG: log the raw hits
             self.logger.debug(
@@ -127,8 +112,8 @@ class RetrievalService:
                     "text_snip":  hit["chunkText"][:200]  # first 200 chars
                 }
             )
-
-        # 4) Return the minimal info for each hit
+        """
+        # 6) Return minimal info
         return [
             {"id": r["id"], "page": r["page"], "text": r["chunkText"]}
             for r in results
