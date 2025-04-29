@@ -34,7 +34,7 @@ fields = [
     SimpleField(name="id",            type=SearchFieldDataType.String, key=True),
     SimpleField(name="documentName",  type=SearchFieldDataType.String, filterable=True),
     SimpleField(name="createdAt",     type=SearchFieldDataType.String, filterable=True),
-    SimpleField(name="page",          type=SearchFieldDataType.String,  filterable=True),
+    SimpleField(name="page",          type=SearchFieldDataType.Int32,  filterable=True),
     SearchableField(name="chunkText", type=SearchFieldDataType.String),
     SearchField(
         name="embedding",
