@@ -20,6 +20,7 @@ class RetrievalService:
         """
         Initialises the retrieval service.
         """
+        
         # Initialise the JSON logger for this service
         self.logger = Logger.get_logger("RetrievalService", json_format=True)
 
@@ -47,6 +48,23 @@ class RetrievalService:
         """
         Retrieves the top k chunks from the search index based on the query.
         """
+        # — Smoke test A: total docs in the index
+        #total = self.search_client.get_document_count()
+        #self.logger.info(f" Total docs in index: {total}")
+
+        # — Smoke test B: docs for this document_name
+        #escaped = document_name.replace("'", "''")
+        #filt = f"documentName eq '{escaped}'"
+
+        #results = self.search_client.search(
+        #    search_text="*",
+        #    filter=filt,
+        #    include_total_count=True,
+        #    top=0
+        #)
+        #doc_count = results.get_count()
+        #self.logger.info(f"🔍 Chunks for '{document_name}': {doc_count}")
+
         # 1) embed query
         try:
             resp = self.oaiclient.embeddings.create(
@@ -71,20 +89,27 @@ class RetrievalService:
             kind="vector",
         )
 
+
         # 3) Vector search WITH filter on documentName
         try:
-            escaped_name = document_name.replace("'", "''")
-            print(f"Escaped name: {escaped_name}")
-            odata_filter = f"documentName eq '{escaped_name}'" # must be single quotes
-            print(f"Filter: {odata_filter}")
+            #escaped_name = document_name.replace("'", "''")
+            #print(f"Escaped name: {escaped_name}")
+            #odata_filter = f"documentName eq '{escaped_name}'" # must be single quotes
+            #print(f"Filter: {odata_filter}")
             
-            results = self.search_client.search(
+            paged = self.search_client.search(
                 search_text="*",  # wildcard so lexical filter is bypassed
                 vector_queries=[vquery],
-                filter=odata_filter,
-                select=["id", "page", "chunkText"],
-                timeout=20,
+                top=k
+                #filter=odata_filter,
+                #select=["id", "page", "chunkText"],
+                #timeout=20,
             )
+
+            results = list(paged)
+
+            self.logger.info("▶️ Pure vector hits: %s", [r["id"] for r in results])
+
         except AzureError as err:
             self.logger.error(
                 "Vector search failed: %s", str(err),
@@ -126,7 +151,7 @@ class RetrievalService:
         # 2) build the prompt with inline citations
         prompt = f"QUESTION: {question}\n\n"
         for c in chunks:
-            print(c["text"])
+            #print(c["text"])
             prompt += f"[Page {c['page']} | Chunk {c['id']}]\n{c['text']}\n\n"
         prompt += "Answer YES or NO. If YES, list the page number(s). Answer:"
         print(prompt)

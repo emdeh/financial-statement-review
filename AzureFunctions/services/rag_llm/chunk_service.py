@@ -7,8 +7,8 @@ class ChunkService:
     """
     Class docstring.
     """
-    CHUNK_SIZE = 1000 # max chars per chunk
-    OVERLAP = 200 # chars to overlap
+    CHUNK_SIZE = 500 # max chars per chunk
+    OVERLAP = 100 # chars to overlap
 
     @staticmethod
     def chunk_text(text: str, page: int) -> list[dict]:
@@ -40,7 +40,7 @@ class ChunkService:
 
             # 3) Extract the snippet
             snippet = text[start:end].strip()
-            print(f"Chunking text: {snippet}")
+            # print(f"Chunking text: {snippet}")
             chunk_id = f"{page}__{start}"
             chunks.append({"id": chunk_id, "page": page, "text": snippet})
 
