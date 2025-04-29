@@ -57,8 +57,11 @@ blobUrl: # Direct URL to the original uploaded document.
 
 ## Costings
 
-For detailed costings please see the [Costings page](/Documentation/Solution_Design/costing.md)
+For detailed costings please see the [Costings page](/Documentation/Solution_Design/costing.md).
 
+## Detailed solution design
+
+For a detailed system flow description, please see the [System Flow Overview](/Documentation/Solution_Design/system-flow-overview.md).
 ## Project structure
 
 ```bash
