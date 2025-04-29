@@ -10,9 +10,16 @@
 """
 
 import os
+from typing import Dict
 import time
 import requests
 from services.logger import Logger
+
+class OcrServiceError(Exception):
+    """
+    Custom exception class for OCR service errors.
+    """
+    pass
 
 class OcrService:
     """
@@ -22,7 +29,7 @@ class OcrService:
     implements a robust OCR extraction method that polls for the operation result.
 
     Methods:
-        extract_text(blob_data: bytes) -> str:
+        extract_text(blob_data: bytes) -> Dict[int, str]:
             Extracts text from the given blob data using OCR.
     """
     def __init__(self):
@@ -30,8 +37,8 @@ class OcrService:
         Initialises the OCR service with the endpoint and subscription key 
         from environment variables.
         """
-        self.endpoint = os.environ.get("COMPUTER_VISION_ENDPOINT")
-        self.subscription_key = os.environ.get("COMPUTER_VISION_KEY")
+        self.endpoint = os.environ["COMPUTER_VISION_ENDPOINT"]
+        self.subscription_key = os.environ["COMPUTER_VISION_KEY"]
         self.logger = Logger.get_logger("OcrService", json_format=True)
 
 
@@ -48,7 +55,11 @@ class OcrService:
             "Content-Type": "application/octet-stream"
         }
 
-    def extract_text(self, blob_data: bytes, timeout: int = 60, poll_interval: float = 1.0) -> str:
+    def extract_text(
+        self,
+        blob_data: bytes,
+        timeout: int = 60,
+        poll_interval: float = 1.0) -> Dict[int, str]:
         """
         Extracts text from the given blob data using the Azure Cognitive Services OCR API.
 
@@ -63,7 +74,7 @@ class OcrService:
             status polls.
 
         Returns:
-            str: The concatenated extracted text from the blob data.
+            Dict[int,str]: Mapping of page number → concatenated lines on that page.
 
         Raises:
             Exception: If the OCR API call fails, processing fails, or times out.
@@ -91,7 +102,7 @@ class OcrService:
             self.logger.debug("OCR API call accepted. Polling for result at %s", operation_url)
 
             # Poll for the OCR result until the status is 'succeeded' or until timeout
-            elapsed_time = 0
+            elapsed_time = 0.0
             while elapsed_time < timeout:
                 result_response = requests.get(
                     operation_url,
@@ -113,7 +124,7 @@ class OcrService:
             self.logger.error("OCR API request failed: %s", str(e))
             raise OcrServiceError(f"OCR API request failed: {str(e)}") from e
 
-    def _parse_read_results(self, result_json: dict) -> str:
+    def _parse_read_results(self, result_json: dict) -> Dict[int, str]:
         """
         Parses the OCR read results JSON and concatenates the extracted text.
 
@@ -121,18 +132,11 @@ class OcrService:
             result_json (dict): The JSON response from the OCR API.
 
         Returns:
-            str: Concatenated text extracted from the document.
+            Dict[int,str]: Mapping of page number → concatenated lines on that page.
         """
-        extracted_lines = []
-        analyze_result = result_json.get("analyzeResult", {})
-        read_results = analyze_result.get("readResults", [])
-        for page in read_results:
-            for line in page.get("lines", []):
-                extracted_lines.append(line.get("text", ""))
-        return "\n".join(extracted_lines)
-
-class OcrServiceError(Exception):
-    """
-    Custom exception class for OCR service errors.
-    """
-    pass
+        pages = result_json.get("analyzeResult", {}).get("readResults", [])
+        page_texts: Dict[int, str] = {}
+        for idx, page in enumerate(pages, start=1):
+            lines = [ln.get("text", "") for ln in page.get("lines", [])]
+            page_texts[idx] = "\n".join(lines)
+        return page_texts

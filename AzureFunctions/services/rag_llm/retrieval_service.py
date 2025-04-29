@@ -1,0 +1,168 @@
+"""
+services/rag_llm/retrieval_service.py
+Module docstring.
+"""
+
+import re
+import os
+from azure.search.documents import SearchClient
+from azure.search.documents.models import VectorizedQuery
+from azure.core.credentials import AzureKeyCredential
+from azure.core.exceptions import AzureError
+from openai import AzureOpenAI, OpenAIError
+from services.logger import Logger
+
+class RetrievalService:
+    """
+    Class docstring.
+    """
+    def __init__(self):
+        """
+        Initialises the retrieval service.
+        """
+        
+        # Initialise the JSON logger for this service
+        self.logger = Logger.get_logger("RetrievalService", json_format=True)
+
+        # Set up the Azure Search client
+        self.search_client = SearchClient(
+            endpoint=os.environ["SEARCH_ENDPOINT"],
+            index_name=os.environ["SEARCH_INDEX"],
+            credential=AzureKeyCredential(os.environ["SEARCH_ADMIN_KEY"]),
+            api_version="2024-07-01"
+            )
+
+        # Set up the OpenAI client
+        self.oaiclient = AzureOpenAI(
+            api_key=os.environ["AZURE_OPENAI_API_KEY"],
+            api_version=os.environ["AZURE_OPENAI_API_VERSION"],
+            azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"]
+        )
+
+        # Bind chat deployment so the model doesn't need to be specified in each call
+        self.oaiclient.deployment_name = os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT"]
+
+        self.logger.info("Initialised AzureOpenAI & SearchClient")
+
+    def retrieve_chunks(self, document_name: str, query: str, k: int = 3):
+        """
+        Retrieves the top k chunks from the search index based on the query.
+        """
+
+        # 1) Embed the user query
+        try:
+            resp = self.oaiclient.embeddings.create(
+                model=os.environ["AZURE_OPENAI_EMBEDDING_MODEL"],
+                input=[query]
+            )
+            qemb = resp.data[0].embedding
+
+        except OpenAIError as err:
+            self.logger.error(
+                "Embedding call failed: %s", str(err),
+                extra={"document": document_name, "query": query}
+            )
+            return []
+
+        # 2) build the vector query
+        vquery = VectorizedQuery(
+            vector=qemb,
+            fields="embedding",
+            k_nearest_neighbors=k,
+            kind="vector",
+        )
+
+        # 3) Prepare the documentName filter
+        escaped = document_name.replace("'", "''")
+        odata_filter = f"documentName eq '{escaped}'"
+
+        # 4) Execute filtered vector search
+        try:
+            paged = self.search_client.search(
+                search_text="*",  # wildcard so lexical filter is bypassed
+                vector_queries=[vquery],
+                filter=odata_filter,
+                select=["id", "page", "chunkText"],
+                timeout=20,
+                top=k
+            )
+
+            results = list(paged) # Materialize the iterator
+            self.logger.info(
+                "Retrieved %d chunk(s) for '%s'", 
+            len(results), document_name
+        )
+
+        except AzureError as err:
+            self.logger.error(
+                "Vector search failed: %s", str(err),
+                extra={"document": document_name, "query": query}
+            )
+            return []
+
+        # 5) (Optional) Debug each hit
+        """
+        for hit in results:
+            # DEBUG: log the raw hits
+            self.logger.debug(
+                "Retrieved chunk",
+                extra={
+                    "chunk_id":   hit["id"],
+                    "page":       hit["page"],
+                    "text_snip":  hit["chunkText"][:200]  # first 200 chars
+                }
+            )
+        """
+        # 6) Return minimal info
+        return [
+            {"id": r["id"], "page": r["page"], "text": r["chunkText"]}
+            for r in results
+        ]
+
+    def ask_with_citations(self,
+                        document_name: str,
+                        check_name: str,
+                        question: str,
+                        query: str,
+                        k: int = 3):
+        """
+        Retrieve top-k chunks for `document_name` matching `query`, then
+        ask the AzureOpenAI chat deployment to answer YES/NO + cite pages.
+        """
+        # 1) retrieve relevant chunks
+        chunks = self.retrieve_chunks(document_name, query, k)
+        print(f"Retrieved {len(chunks)} chunks for query '{query}'")
+
+        # 2) build the prompt with inline citations
+        prompt = f"QUESTION: {question}\n\n"
+        for c in chunks:
+            #print(c["text"])
+            prompt += f"[Page {c['page']} | Chunk {c['id']}]\n{c['text']}\n\n"
+        prompt += "Answer YES or NO. If YES, list the page number(s). Answer:"
+        print(prompt)
+
+        # 3) call the chat completion endpoint
+        try:
+            chat_resp = self.oaiclient.chat.completions.create(
+                model=self.oaiclient.deployment_name,
+                messages=[
+                    {"role": "system", "content": "You are a precise assistant."},
+                    {"role": "user",   "content": prompt}
+                ]
+            )
+            answer = chat_resp.choices[0].message.content.strip()
+            print(answer)
+        except OpenAIError as err:
+            self.logger.error(
+                "Chat completion failed: %s", str(err),
+                extra={"check": check_name}
+            )
+            answer = "NO — (error)"
+
+        # 4) parse out any cited page numbers
+        pages = [
+            int(p)
+            for p in re.findall(r"page\s*(\d+)", answer, flags=re.IGNORECASE)
+        ]
+
+        return {"answer": answer, "citations": sorted(set(pages))}

@@ -1,15 +1,5 @@
 # Proposed Azure AI Solution for Financial Statements
 
-## Overview
-This project aims to automate the validation of financial statements on a public register using Azure-based AI services. The primary objectives are to:
-
-- **Automate Document Classification:** Use OCR and an embedding-based machine learning classifier to differentiate genuine financial statements from unrelated or incorrect uploads.
-- **Detect Critical Features:** Identify essential components—such as an auditor's signature—to ensure each document meets the required standards.
-- **Enable Continuous Improvement:** Incorporate a human feedback loop that allows case officers to review and refine AI decisions, thus progressively enhancing model accuracy.
-- **Ensure Scalability and Security:** Deploy a cost-effective, serverless solution using Azure Blob Storage, Functions, Machine Learning, and Cosmos DB, while following best security practices.
-- **Provide Real-time Reporting:** Integrate with Power BI to generate dynamic dashboards that display processing metrics and model performance for ongoing oversight.
-
-This solution will streamline the review process, reduce manual effort, and lay a strong foundation for further enhancements.
 
 ## Document Classification (FS vs. Other Files)
 The first step is an AI-driven document classifier to flag whether an uploaded PDF is a Financial Statement (FS) or an incorrect file. The design will use Optical Character Recognition (OCR) to extract text from each PDF and then apply a machine learning model to classify the document type. Azure's Cognitive Services **Read OCR** (or Document Intelligence's Layout model) can extract text from PDFs, including scanned ones.

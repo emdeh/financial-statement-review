@@ -9,7 +9,6 @@ extraction method, and validation status.
 from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, Field
-from services.debug_utils import is_debug_mode, write_debug_file
 
 class DocumentResult(BaseModel):
     """
@@ -27,6 +26,8 @@ class DocumentResult(BaseModel):
     afsConfidence: Optional[float] = Field(None, alias="afsConfidence")
     hasABN: Optional[bool] = None
     ABN: Optional[str] = None
+    hasProfitLoss: Optional[bool] = None
+    profitLossPages: Optional[list[int]] = None
     timestamp: datetime
 
     class Config:
@@ -35,5 +36,3 @@ class DocumentResult(BaseModel):
         This configuration allows the model to be populated by field names
         """
         allow_population_by_field_name = True
-
-

@@ -9,6 +9,7 @@
         myblob (func.InputStream): The input blob stream that triggered the function.
 """
 import os
+import time
 import azure.functions as func
 from services.logger import Logger
 from services.tracer import AppTracer
@@ -16,6 +17,8 @@ from services.ocr_service import OcrService, OcrServiceError
 from services.debug_utils import write_debug_file, is_debug_mode
 from services.pdf_utils import PDFService
 from services.db_service import DbService
+from services.rag_llm.embedding_service import EmbeddingService
+from services.rag_llm.retrieval_service import RetrievalService
 
 # Initialise the JSON logger for this function
 logger = Logger.get_logger("ProcessPDF", json_format=True)
@@ -53,6 +56,7 @@ def main(myblob: func.InputStream):
     Main entry point for the Azure Function.
     """
     with tracer.span(name="ProcessPDFOperation") as span:
+        
         # Log the beginning of the blob processing operation, including extra context.
         logger.info("Blob trigger function processed %s", myblob.name,
         extra={
@@ -111,18 +115,15 @@ def main(myblob: func.InputStream):
             )
 
         # First attempt to extract embedded text for digitally generated PDFs
-        embedded_text = pdf_service.extract_embedded_text(pdf_bytes)
+        embedded_pages = pdf_service.extract_embedded_text(pdf_bytes)
 
-        if embedded_text:
+        if embedded_pages:
             extraction_method = "embedded"
             logger.info("Extraction complete using %s method",extraction_method,
             extra={
                 "method": extraction_method,
-                "extracted_text": embedded_text
                 })
-
-            logger.info("Extraction output length is %s", len(embedded_text))
-            ocr_result = embedded_text
+            extraction_pages = embedded_pages
 
         else:
             extraction_method = "OCR"
@@ -130,15 +131,13 @@ def main(myblob: func.InputStream):
 
             # Extract using OCR
             try:
-                ocr_result = OcrService().extract_text(pdf_bytes)
+                ocr_pages = OcrService().extract_text(pdf_bytes)
                 logger.info("Extraction complete using %s method", extraction_method,
                 extra={
                     "method": extraction_method,
-                    "extracted_text": ocr_result
                     })
+                extraction_pages = ocr_pages
 
-                logger.info("Extraction output length is %s", len(ocr_result))
-            
             except OcrServiceError as e:
                 logger.error("Error extracting text from PDF using %s", extraction_method,
                 extra={
@@ -147,7 +146,8 @@ def main(myblob: func.InputStream):
                 return
 
         # 3) ABN detection
-        abn_value = pdf_service.find_abn(ocr_result)
+        full_text = "\n".join(extraction_pages.values())
+        abn_value = pdf_service.find_abn(full_text)
         has_abn = abn_value is not None
 
         logger.info(
@@ -168,7 +168,7 @@ def main(myblob: func.InputStream):
         # DEBUG
         if is_debug_mode():
             # Write the extracted text to a debug file
-            debug_file = write_debug_file(ocr_result, prefix="ocr_output")
+            debug_file = write_debug_file(extraction_pages, prefix="ocr_output")
             logger.info("DEBUG ON - Debug file written",
             extra={
                 "method": extraction_method,
@@ -180,7 +180,7 @@ def main(myblob: func.InputStream):
         # Continue processing (e.g., parse text, send to ML, etc)
 
         # Simulate ML model classification
-        classification_result = simulate_ml_classification(ocr_result)
+        classification_result = simulate_ml_classification(full_text)
         logger.info(
             "ML classification complete",
             extra={"classification_result": classification_result})
@@ -198,20 +198,45 @@ def main(myblob: func.InputStream):
                 "debug_file": debug_file
                 })
 
+        # --- RAG+LLM INTEGRATION POINT ---
+        
+        embedding_service = EmbeddingService()
+        embedding_service.index_chunks(
+            document_name=myblob.name,
+            page_texts=extraction_pages
+            )
+
+        # Add a delay of 20 seconds to allow for indexing
+        time.sleep(20)
+
+        retrieval_service = RetrievalService()
+
+        pl = retrieval_service.ask_with_citations(
+            document_name=myblob.name,
+            check_name="Profit or Loss Statement",
+            question="Does this doc contain a profit or loss statement?",
+            query="profit or loss statement"
+        )
+            
+        # 3) Build your final payload by merging RAG results
+        results_payload = {
+            "isPDF": is_pdf,
+            "pageCount": page_count,
+            "blobUrl": myblob.uri,
+            "extractionMethod": extraction_method,
+            "isValidAFS": classification_result["is_valid_afs"],
+            "afsConfidence": classification_result["afs_confidence"],
+            "hasABN": has_abn,
+            "ABN": abn_value,
+            "hasProfitLoss": pl["answer"].upper().startswith("YES"),
+            "profitLossPages": pl["citations"],
+        }
+
         # Write results to database
         try:
             db.store_results(
                 document_name=myblob.name,
-                data={
-                    "isPDF": pdf_service.is_pdf(pdf_bytes),
-                    "pageCount": page_count,
-                    "blobUrl": myblob.uri,
-                    "extractionMethod": extraction_method,
-                    "isValidAFS": classification_result["is_valid_afs"],
-                    "afsConfidence": classification_result["afs_confidence"],
-                    "hasABN": has_abn,
-                    "ABN": abn_value
-                }
+                data=results_payload
             )
         except Exception as e:
             logger.error("Error storing results in Cosmos DB",
