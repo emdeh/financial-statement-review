@@ -79,6 +79,19 @@ class RetrievalService:
         # 4) Execute filtered vector search
         try:
             paged = self.search_client.search(
+
+            # `paged` is an instance of the Azure Search SDK’s ItemPaged
+            # (aka SearchPaged) class.
+            # It lazily pages through results in batches on demand and can only
+            # be consumed once.
+            #
+            # • Lazy paging: it fetches the first batch of results only when you
+            # start iterating, then fetches subsequent batches as you consume them.
+            #
+            # • Single-use iterator: once you’ve walked through all batches,
+            # even just one page, the iterator is exhausted and cannot be
+            # rewound or reused.
+
                 search_text="*",  # wildcard so lexical filter is bypassed
                 vector_queries=[vquery],
                 filter=odata_filter,
@@ -87,7 +100,14 @@ class RetrievalService:
                 top=k
             )
 
-            results = list(paged) # Materialize the iterator
+            # Very important to "materialise" the SearchPaged iterator into a list.
+            # Converting to list forces all batches to be fetched and stores
+            # them in memory, allowing multiple passes for logging, debugging,
+            # and return without re-fetching.
+            #
+            # I hope this comment helps avoid some heartache for future readers.
+
+            results = list(paged) # For the love of God, materialise this iterator!
             self.logger.info(
                 "Retrieved %d chunk(s) for '%s'", 
             len(results), document_name
