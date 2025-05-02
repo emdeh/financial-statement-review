@@ -5,7 +5,7 @@ Module docstring.
 from services.rag_llm.checks import CHECKS
 from services.rag_llm.retrieval_service import RetrievalService
 
-def run_llm_checks(document_name: str) -> dict:
+def run_llm_checks(document_name: str, system_prompt: str = None) -> dict:
     """
     Runs all RAG+LLM yes/no checks defined in CHECKS,
     returning a flat dict of flags and citation lists.
@@ -18,7 +18,8 @@ def run_llm_checks(document_name: str) -> dict:
             check_name=chk.name,
             question=chk.question,
             query=chk.query,
-            k=chk.k
+            k=chk.k,
+            system_prompt=system_prompt or chk.system_prompt
         )
         results[f"has_{chk.name}"]  = res["answer"].upper().startswith("YES")
         results[f"{chk.name}Pages"] = res["citations"]

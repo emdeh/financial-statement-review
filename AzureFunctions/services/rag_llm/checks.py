@@ -12,6 +12,7 @@ class CheckDef:
     question: str
     query: str
     k: int = 3
+    system_prompt: str = None
 
 CHECKS = [
     CheckDef(
