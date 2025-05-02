@@ -21,6 +21,11 @@ def run_llm_checks(document_name: str, system_prompt: str = None) -> dict:
             k=chk.k,
             system_prompt=system_prompt or chk.system_prompt
         )
-        results[f"has_{chk.name}"]  = res["answer"].upper().startswith("YES")
-        results[f"{chk.name}Pages"] = res["citations"]
+        # build the exact field names your Pydantic model expects:
+        flag_key  = f"has{chk.field_name}" # e.g. "hasProfitLoss"
+        pages_key = f"{chk.field_name[0].lower()}{chk.field_name[1:]}Pages"
+        # ^ lower-camel for the Pages key, e.g. "profitLossPages"
+
+        results[flag_key]  = res["answer"].upper().startswith("YES")
+        results[pages_key] = res["citations"]
     return results

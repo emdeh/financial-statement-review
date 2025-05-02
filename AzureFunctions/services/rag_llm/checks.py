@@ -9,6 +9,7 @@ class CheckDef:
     Class docstring.
     """
     name: str
+    field_name: str
     question: str
     query: str
     k: int = 3
@@ -16,18 +17,26 @@ class CheckDef:
 
 CHECKS = [
     CheckDef(
-        name="ProfitOrLossStatement",
+        name="Profit or Loss Statement",
+        field_name="ProfitLoss",
         question="Does this doc contain a profit or loss statement?",
         query="profit or loss statement"
     ),
     CheckDef(
-        name="BalanceSheet",
+        name="Balance Sheet",
+        field_name="BalanceSheet",
         question="Does this doc contain a balance sheet?",
         query="balance sheet"
     ),
     CheckDef(
-        name="CashFlowStatement",
+        name="Cash Flow Statement",
+        field_name="CashFlow",
         question="Does this doc contain a cash flow statement?",
         query="cash flow statement"
     ),
 ]
+
+"""
+Checks must much the DocumentResult model in db_models.py.
+For example if you have `hasBalanceSheet` in the model, you musth have BalanceSheet in the checks.py.
+"""
