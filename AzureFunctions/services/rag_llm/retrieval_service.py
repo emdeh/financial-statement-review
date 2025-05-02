@@ -21,7 +21,7 @@ class RetrievalService:
         """
         Initialises the retrieval service.
         """
-        
+
         # Initialise the JSON logger for this service
         self.logger = Logger.get_logger("RetrievalService", json_format=True)
 
@@ -44,7 +44,8 @@ class RetrievalService:
         self.oaiclient.deployment_name = os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT"]
 
         # Set the default system prompt
-        self.system_prompt = os.getenv("LLM_SYSTEM_PROMPT", DEFAULT_SYSTEM_PROMPT) # Can override in env var deployment if needed.
+        # Can override in env var deployment if needed.
+        self.system_prompt = os.getenv("LLM_SYSTEM_PROMPT", DEFAULT_SYSTEM_PROMPT)
 
         self.logger.info("Initialised AzureOpenAI & SearchClient")
 
@@ -185,7 +186,7 @@ class RetrievalService:
             )
             answer = chat_resp.choices[0].message.content.strip()
             print(f" DEBUG - Chat response: {answer}")
-            
+
         except OpenAIError as err:
             self.logger.error(
                 "Chat completion failed: %s", str(err),
@@ -200,3 +201,4 @@ class RetrievalService:
         ]
 
         return {"answer": answer, "citations": sorted(set(pages))}
+

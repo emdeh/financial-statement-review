@@ -56,7 +56,7 @@ def main(myblob: func.InputStream):
     Main entry point for the Azure Function.
     """
     with tracer.span(name="ProcessPDFOperation") as span:
-        
+
         # Log the beginning of the blob processing operation, including extra context.
         logger.info("Blob trigger function processed %s", myblob.name,
         extra={
@@ -198,7 +198,7 @@ def main(myblob: func.InputStream):
                 "debug_file": debug_file
                 })
 
-        # --- RAG+LLM INTEGRATION POINT ---
+        # --- RAG+LLM INTEGRATION POINT --- #
         
         embedding_service = EmbeddingService()
         embedding_service.index_chunks(
@@ -207,6 +207,7 @@ def main(myblob: func.InputStream):
             )
 
         # Add a delay of 20 seconds to allow for indexing
+        # TODO: is this still needed?
         time.sleep(20)
 
 
@@ -215,13 +216,6 @@ def main(myblob: func.InputStream):
             document_name=myblob.name,
             system_prompt=None
         )
-
-        """pl = retrieval_service.ask_with_citations(
-            document_name=myblob.name,
-            check_name="Profit or Loss Statement",
-            question="Does this doc contain a profit or loss statement?",
-            query="profit or loss statement"
-        )"""
 
         # Construct the base payload
         base_payload = {
@@ -235,25 +229,11 @@ def main(myblob: func.InputStream):
             "ABN": abn_value
         }
 
-        # Merge RAG results with base payload
+        # Build final payload by merging RAG results with base payload
         final_payload = {
             **base_payload,
             **llm_flags
         }
-
-        # 3) Build your final payload by merging RAG results
-        """results_payload = {
-            "isPDF": is_pdf,
-            "pageCount": page_count,
-            "blobUrl": myblob.uri,
-            "extractionMethod": extraction_method,
-            "isValidAFS": classification_result["is_valid_afs"],
-            "afsConfidence": classification_result["afs_confidence"],
-            "hasABN": has_abn,
-            "ABN": abn_value,
-            "hasProfitLoss": pl["answer"].upper().startswith("YES"),
-            "profitLossPages": pl["citations"],
-        }"""
 
         # Write results to database
         try:

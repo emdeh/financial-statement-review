@@ -54,5 +54,5 @@ class ChunkService:
                 next_start += 1
             seen.add(start)
             start = next_start
-            
+
         return chunks
