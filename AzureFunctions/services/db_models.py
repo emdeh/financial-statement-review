@@ -14,7 +14,9 @@ class DocumentResult(BaseModel):
     """
     DocumentResult model to represent the result of a document processing operation.
     This model includes various attributes related to the document, such as its ID,
-    name, page count, extraction method, and validation status.     
+    name, page count, extraction method, and validation status.
+
+    The model should include the names from CheckDef in checks.py.     
     """
     id: str
     documentName: str
@@ -36,7 +38,7 @@ class DocumentResult(BaseModel):
     hasCashFlow: Optional[bool] = None
     cashFlowPages: Optional[list[int]] = None
 
-    
+
     timestamp: datetime
 
     class Config:
