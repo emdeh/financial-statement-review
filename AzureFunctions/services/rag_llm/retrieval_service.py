@@ -11,6 +11,7 @@ from azure.core.credentials import AzureKeyCredential
 from azure.core.exceptions import AzureError
 from openai import AzureOpenAI, OpenAIError
 from services.logger import Logger
+from services.rag_llm.prompts import DEFAULT_SYSTEM_PROMPT
 
 class RetrievalService:
     """
@@ -41,6 +42,9 @@ class RetrievalService:
 
         # Bind chat deployment so the model doesn't need to be specified in each call
         self.oaiclient.deployment_name = os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT"]
+
+        # Set the default system prompt
+        self.system_prompt = os.getenv("LLM_SYSTEM_PROMPT", DEFAULT_SYSTEM_PROMPT) # Can override in env var deployment if needed.
 
         self.logger.info("Initialised AzureOpenAI & SearchClient")
 
@@ -146,34 +150,42 @@ class RetrievalService:
                         check_name: str,
                         question: str,
                         query: str,
-                        k: int = 3):
+                        k: int = 3,
+                        system_prompt: str = None
+                    ):
         """
         Retrieve top-k chunks for `document_name` matching `query`, then
         ask the AzureOpenAI chat deployment to answer YES/NO + cite pages.
         """
         # 1) retrieve relevant chunks
         chunks = self.retrieve_chunks(document_name, query, k)
-        print(f"Retrieved {len(chunks)} chunks for query '{query}'")
+        # print(f"DEBUG - Retrieved {len(chunks)} chunks for query '{query}'")
 
         # 2) build the prompt with inline citations
-        prompt = f"QUESTION: {question}\n\n"
+        user_prompt = f"QUESTION: {question}\n\n"
         for c in chunks:
             #print(c["text"])
-            prompt += f"[Page {c['page']} | Chunk {c['id']}]\n{c['text']}\n\n"
-        prompt += "Answer YES or NO. If YES, list the page number(s). Answer:"
-        print(prompt)
+            user_prompt += f"[Page {c['page']} | Chunk {c['id']}]\n{c['text']}\n\n"
+        user_prompt += "Answer YES or NO. If YES, list the page number(s). Answer:"
+        print(f"DEBUG - {user_prompt}")
 
-        # 3) call the chat completion endpoint
+        # 3) Choose which system message to use
+        sys_msg = system_prompt or self.system_prompt
+        print(f"DEBUG - Using system prompt: {sys_msg}")
+
+
+        # 4) call the chat completion endpoint
         try:
             chat_resp = self.oaiclient.chat.completions.create(
                 model=self.oaiclient.deployment_name,
                 messages=[
-                    {"role": "system", "content": "You are a precise assistant."},
-                    {"role": "user",   "content": prompt}
+                    {"role": "system", "content": sys_msg},
+                    {"role": "user",   "content": user_prompt}
                 ]
             )
             answer = chat_resp.choices[0].message.content.strip()
-            print(answer)
+            print(f" DEBUG - Chat response: {answer}")
+            
         except OpenAIError as err:
             self.logger.error(
                 "Chat completion failed: %s", str(err),
