@@ -26,8 +26,17 @@ class DocumentResult(BaseModel):
     afsConfidence: Optional[float] = Field(None, alias="afsConfidence")
     hasABN: Optional[bool] = None
     ABN: Optional[str] = None
+    
     hasProfitLoss: Optional[bool] = None
     profitLossPages: Optional[list[int]] = None
+
+    hasBalanceSheet: Optional[bool] = None
+    balanceSheetPages: Optional[list[int]] = None
+
+    hasCashFlow: Optional[bool] = None
+    cashFlowPages: Optional[list[int]] = None
+
+    
     timestamp: datetime
 
     class Config:
