@@ -16,17 +16,17 @@ class CheckDef:
 
 CHECKS = [
     CheckDef(
-        name="Profit or Loss Statement",
+        name="ProfitOrLossStatement",
         question="Does this doc contain a profit or loss statement?",
         query="profit or loss statement"
     ),
     CheckDef(
-        name="Balance Sheet",
+        name="BalanceSheet",
         question="Does this doc contain a balance sheet?",
         query="balance sheet"
     ),
     CheckDef(
-        name="Cash Flow Statement",
+        name="CashFlowStatement",
         question="Does this doc contain a cash flow statement?",
         query="cash flow statement"
     ),

@@ -18,7 +18,7 @@ from services.debug_utils import write_debug_file, is_debug_mode
 from services.pdf_utils import PDFService
 from services.db_service import DbService
 from services.rag_llm.embedding_service import EmbeddingService
-from services.rag_llm.retrieval_service import RetrievalService
+from services.rag_llm.check_runner import run_llm_checks
 
 # Initialise the JSON logger for this function
 logger = Logger.get_logger("ProcessPDF", json_format=True)
@@ -209,17 +209,40 @@ def main(myblob: func.InputStream):
         # Add a delay of 20 seconds to allow for indexing
         time.sleep(20)
 
-        retrieval_service = RetrievalService()
 
-        pl = retrieval_service.ask_with_citations(
+        # Run all checks via check_runner
+        llm_flags = run_llm_checks(
+            document_name=myblob.name,
+            system_prompt=None
+        )
+
+        """pl = retrieval_service.ask_with_citations(
             document_name=myblob.name,
             check_name="Profit or Loss Statement",
             question="Does this doc contain a profit or loss statement?",
             query="profit or loss statement"
-        )
-            
+        )"""
+
+        # Construct the base payload
+        base_payload = {
+            "isPDF": is_pdf,
+            "pageCount": page_count,
+            "blobUrl": myblob.uri,
+            "extractionMethod": extraction_method,
+            "isValidAFS": classification_result["is_valid_afs"],
+            "afsConfidence": classification_result["afs_confidence"],
+            "hasABN": has_abn,
+            "ABN": abn_value
+        }
+
+        # Merge RAG results with base payload
+        final_payload = {
+            **base_payload,
+            **llm_flags
+        }
+
         # 3) Build your final payload by merging RAG results
-        results_payload = {
+        """results_payload = {
             "isPDF": is_pdf,
             "pageCount": page_count,
             "blobUrl": myblob.uri,
@@ -230,13 +253,13 @@ def main(myblob: func.InputStream):
             "ABN": abn_value,
             "hasProfitLoss": pl["answer"].upper().startswith("YES"),
             "profitLossPages": pl["citations"],
-        }
+        }"""
 
         # Write results to database
         try:
             db.store_results(
                 document_name=myblob.name,
-                data=results_payload
+                data=final_payload
             )
         except Exception as e:
             logger.error("Error storing results in Cosmos DB",
