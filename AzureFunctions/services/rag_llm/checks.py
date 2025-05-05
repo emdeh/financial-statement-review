@@ -36,7 +36,7 @@ class CheckDef:
     
     Notes:
     -----
-        Checks must much the DocumentResult model in db_models.py.
+        Checks must match the DocumentResult model in db_models.py.
         For example if you have `hasBalanceSheet` in the model, you musth have 
         BalanceSheet in the checks.py.
     """
