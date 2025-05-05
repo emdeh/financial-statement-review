@@ -1,18 +1,17 @@
 """
     Relative location: services/tracer.py
+    Module for tracing service to monitor application performance and diagnose issues.
 
-    This module provides the `AppTracer` class, which is a wrapper for the OpenCensus 
-    tracer configured to export trace data to Application Insights. It allows for 
-    integration with the logging library and supports customisable sampling rates.
-    
+    This module provides a tracer class to handle tracing operations using
+    OpenCensus and Azure Application Insights. It includes methods to create
+    and manage tracing spans, allowing you to monitor the performance of
+    different parts of your application. The tracer class integrates with
+    Azure Application Insights to provide tracing capabilities, enabling you
+    to track the performance of your application and diagnose issues.
+
     Classes:
-        AppTracer: A wrapper for the OpenCensus tracer configured to export data to 
-                   Application Insights.
-
-    Usage example:
-        tracer = AppTracer(instrumentation_key='your_instrumentation_key')
-        with tracer.span('example_span'):
-            # Your traced code here
+    --------
+        AppTracer: A class to handle tracing operations.
 """
 
 from opencensus.trace import config_integration
@@ -23,27 +22,29 @@ from opencensus.trace.tracer import Tracer as OCTTracer
 
 class AppTracer:
     """
-    A class used to create and manage tracing spans for application performance monitoring.
-    The AppTracer class integrates with Azure Application Insights to provide tracing capabilities.
-    It allows you to create tracing spans which can be used to monitor the performance and 
-    diagnose issues within your application.
+    A class to handle tracing operations using OpenCensus and Azure Application Insights.
+    This class includes methods to create and manage tracing spans, allowing
+    you to monitor the performance of different parts of your application.
 
-    Attributes:
-        tracer (OCTTracer): The tracer object used to create and manage spans.
-        
-    Methods:
-        __init__(instrumentation_key, sampler_rate=1.0):
-            Initializes the AppTracer with the given instrumentation key and sampler rate.
-        span(name):
+    Attributes
+    ----------
+        tracer (OCTTracer): The OpenCensus tracer instance.
+        instrumentation_key (str): The instrumentation key for Azure Application Insights.
+        sampler_rate (float): The sampling rate for tracing (default is 1.0, meaning 100% of traces are sampled).
+
+    Methods
+    -------
+        __init__(): Initialises the AppTracer with the given instrumentation key and sampler rate.
+        span(): Creates a tracing span with the given name.
     """
 
     def __init__(self, instrumentation_key, sampler_rate=1.0):
         """
         Initialises the AppTracer with the given instrumentation key and sampler rate.
-        
-        Parameters:
-            instrumentation_key (str): Your Application Insights instrumentation key.
-            sampler_rate (float): Sampling rate (1.0 means 100% of traces are sampled).
+
+        Args:
+            instrumentation_key (str): The instrumentation key for Azure Application Insights.
+            sampler_rate (float): The sampling rate for tracing (default is 1.0, meaning 100% of traces are sampled).
         """
         config_integration.trace_integrations(['logging'])
 
@@ -57,11 +58,14 @@ class AppTracer:
     def span(self, name):
         """
         Creates a tracing span with the given name.
+
+        Args:
+            name (str): The name of the span.
         
-        Parameters:
-            name (str): The name of the tracing span.
-            
         Returns:
-            A context manager representing the span.
+            span (Span): The created span object.
+
+        Raises:
+            None
         """
         return self.tracer.span(name=name)
