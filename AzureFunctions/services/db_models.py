@@ -1,33 +1,25 @@
 """
     services/db_models.py
-    Typed data models for persisting the output of the **ProcessPDF** Azure
-    Function to CosmosDB (or any other backing store).
+    Module for database models used in the Azure Functions project.
 
-    The primary model, **DocumentResult**, captures everything required about a
-    processed PDF:
+    This module defines the data models used for storing and retrieving
+    document processing results in Azure Cosmos DB. It includes the
+    DocumentResult model, which represents the result of a document
+    processing operation.
 
-    - Basic metadata - document name, page count, whether the blob is a valid
-    PDF.
-    - Extraction details - embedded-text vs OCR method used.
-    - ML / LLM validation - flags such as `isValidAFS`, `afsConfidence`, and the
-    presence of key financial statements.
-    - Compliance checks - dynamic fields whose names correspond to `CheckDef`
-    entries in `checks.py`.
-    - Audit - blob URL and processing timestamp for traceability.
-
-    Attributes
-    ----------
-    DocumentResult : pydantic.BaseModel
-        Main Pydantic model exported by this module.
+    Classes:
+    ---------
+        DocumentResult: A Pydantic model representing the result of a document
+                        processing operation.
 
     Notes
     -----
-    - Field names follow **camelCase** to align with the wider JSON contract,
-    but Pydantic aliases (e.g. `afsConfidence`) ensure external consumers
-    see the expected casing.
-    - Set `allow_population_by_field_name = True` so callers can provide either
-    the original attribute name or its alias.
-    - Extend `DocumentResult` if additional checks are added to `CheckDef`.
+        - Field names follow **camelCase** to align with the wider JSON contract,
+            but Pydantic aliases (e.g. `afsConfidence`) ensure external consumers
+            see the expected casing.
+        - Set `allow_population_by_field_name = True` so callers can provide either
+            the original attribute name or its alias.
+        - Extend `DocumentResult` if additional checks are added to `CheckDef`.
 """
 
 from datetime import datetime
@@ -41,12 +33,8 @@ class DocumentResult(BaseModel):
     This model includes various attributes related to the document, such as its ID,
     name, page count, extraction method, LLM+RAG checks, and validation status.
 
-    Parameters
-    ----------
-        - As described below.
-
     Attributes
-    ---------
+    ----------
         - As described below.
 
     Methods
