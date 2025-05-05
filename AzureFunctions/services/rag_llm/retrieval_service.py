@@ -1,6 +1,16 @@
 """
 services/rag_llm/retrieval_service.py
-Module docstring.
+Module for retrieval service to interact with Azure Search and OpenAI.
+
+This module provides a service class to handle retrieval operations
+using Azure Search and OpenAI. It includes methods to retrieve
+text chunks based on a query, ask the OpenAI chat deployment
+for answers with citations, and manage the Azure Search client.
+
+Classes:
+--------
+    RetrievalService: A service class to handle retrieval operations
+                      using Azure Search and OpenAI.
 """
 
 import re
@@ -11,16 +21,36 @@ from azure.core.credentials import AzureKeyCredential
 from azure.core.exceptions import AzureError
 from openai import AzureOpenAI, OpenAIError
 from services.logger import Logger
+from services.rag_llm.prompts import DEFAULT_SYSTEM_PROMPT
 
 class RetrievalService:
     """
-    Class docstring.
+    RetrievalService class to handle retrieval operations
+    using Azure Search and OpenAI.
+
+    Attributes
+    ----------
+        logger (Logger): Logger instance for logging messages.
+        search_client (SearchClient): Azure Search client instance for querying documents.
+        oaiclient (AzureOpenAI): Azure OpenAI client instance for generating embeddings and chat completions.
+        system_prompt (str): The default system prompt for the OpenAI chat deployment.
+        deoployment_name (str): The name of the OpenAI deployment for chat completions.
+
+    Methods
+    -------
+        __init__(): Initialises the retrieval service with the necessary configuration.
+        retrieve_chunks(): Retrieves the top k chunks from the search index based on the query.
+        ask_with_citations(): Retrieves top-k chunks for a document matching a query,
+                             then asks the OpenAI chat deployment to answer YES/NO + cite pages.
+
     """
     def __init__(self):
         """
-        Initialises the retrieval service.
+        Initialises the retrieval service with the necessary configuration.
+        Sets up the Azure Search client and OpenAI client using environment variables.
+
         """
-        
+
         # Initialise the JSON logger for this service
         self.logger = Logger.get_logger("RetrievalService", json_format=True)
 
@@ -42,11 +72,31 @@ class RetrievalService:
         # Bind chat deployment so the model doesn't need to be specified in each call
         self.oaiclient.deployment_name = os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT"]
 
+        # Set the default system prompt
+        # Can override in env var deployment if needed.
+        self.system_prompt = os.getenv("LLM_SYSTEM_PROMPT", DEFAULT_SYSTEM_PROMPT)
+
         self.logger.info("Initialised AzureOpenAI & SearchClient")
 
     def retrieve_chunks(self, document_name: str, query: str, k: int = 3):
         """
-        Retrieves the top k chunks from the search index based on the query.
+        Retrieve the top k chunks from the search index based on the query.
+        This method uses the Azure OpenAI client to generate an embedding for
+        the query, then performs a vector search in the Azure Search index
+        to find the most relevant chunks.
+
+        Args:
+            document_name (str): The name of the document to search in.
+            query (str): The query string to search for.
+            k (int): The number of top results to retrieve. Default is 3.
+
+        Returns:
+            list: A list of dictionaries containing the top k chunks
+                  with their IDs, page numbers, and text content.
+
+        Raises:
+            OpenAIError: If the embedding generation fails.
+            AzureError: If the vector search fails.
         """
 
         # 1) Embed the user query
@@ -146,34 +196,42 @@ class RetrievalService:
                         check_name: str,
                         question: str,
                         query: str,
-                        k: int = 3):
+                        k: int = 3,
+                        system_prompt: str = None
+                    ):
         """
         Retrieve top-k chunks for `document_name` matching `query`, then
         ask the AzureOpenAI chat deployment to answer YES/NO + cite pages.
         """
         # 1) retrieve relevant chunks
         chunks = self.retrieve_chunks(document_name, query, k)
-        print(f"Retrieved {len(chunks)} chunks for query '{query}'")
+        # print(f"DEBUG - Retrieved {len(chunks)} chunks for query '{query}'")
 
         # 2) build the prompt with inline citations
-        prompt = f"QUESTION: {question}\n\n"
+        user_prompt = f"QUESTION: {question}\n\n"
         for c in chunks:
             #print(c["text"])
-            prompt += f"[Page {c['page']} | Chunk {c['id']}]\n{c['text']}\n\n"
-        prompt += "Answer YES or NO. If YES, list the page number(s). Answer:"
-        print(prompt)
+            user_prompt += f"[Page {c['page']} | Chunk {c['id']}]\n{c['text']}\n\n"
+        user_prompt += "Answer YES or NO. If YES, list the page number(s). Answer:"
+        print(f"DEBUG - {user_prompt}")
 
-        # 3) call the chat completion endpoint
+        # 3) Choose which system message to use
+        sys_msg = system_prompt or self.system_prompt
+        print(f"DEBUG - Using system prompt: {sys_msg}")
+
+
+        # 4) call the chat completion endpoint
         try:
             chat_resp = self.oaiclient.chat.completions.create(
                 model=self.oaiclient.deployment_name,
                 messages=[
-                    {"role": "system", "content": "You are a precise assistant."},
-                    {"role": "user",   "content": prompt}
+                    {"role": "system", "content": sys_msg},
+                    {"role": "user",   "content": user_prompt}
                 ]
             )
             answer = chat_resp.choices[0].message.content.strip()
-            print(answer)
+            print(f" DEBUG - Chat response: {answer}")
+
         except OpenAIError as err:
             self.logger.error(
                 "Chat completion failed: %s", str(err),
@@ -188,3 +246,4 @@ class RetrievalService:
         ]
 
         return {"answer": answer, "citations": sorted(set(pages))}
+

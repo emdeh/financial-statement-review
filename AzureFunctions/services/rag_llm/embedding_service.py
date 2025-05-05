@@ -1,6 +1,20 @@
 """
 services/rag_llm/embedding_service.py
-Module docstring.
+Module for embedding service to index text chunks into Azure Cognitive Search.
+
+This module provides a service class to handle the embedding of text
+chunks into Azure Cognitive Search. It includes methods to index
+text chunks, handle embedding errors, and manage the Azure Search
+client. The service class retrieves the necessary configuration
+parameters from environment variables and implements a robust
+embedding process that batches the text chunks for efficient
+processing. The class also includes error handling for various
+scenarios, including request failures and indexing errors.
+
+Classes:
+--------
+    EmbeddingService: A service class to handle embedding operations
+                      using Azure OpenAI and Azure Cognitive Search.
 """
 
 import os
@@ -9,15 +23,41 @@ from openai import AzureOpenAI, OpenAIError
 from azure.search.documents import SearchClient
 from azure.core.credentials import AzureKeyCredential
 from services.logger import Logger
-from services.rag_llm.chunk_service import ChunkService
+from services.rag_llm.chunk_service import DynamicChunker
 
 class EmbeddingService:
     """
-    Class docstring.
+    A service class to handle embedding operations using Azure OpenAI
+    and Azure Cognitive Search. This class includes methods to index
+    text chunks into the search index, handle embedding errors, and
+    manage the Azure Search client. The service class retrieves the
+    necessary configuration parameters from environment variables and
+    implements a robust embedding process that batches the text chunks
+    for efficient processing. The class also includes error handling
+    for various scenarios, including request failures and indexing errors.
+    The embedding process is designed to ensure that the text chunks
+    are indexed correctly and efficiently, allowing for fast retrieval
+    and search capabilities in the Azure Cognitive Search index.
+
+    Attributes
+    ----------
+        logger (Logger): Logger instance for logging messages.
+        batch_size (int): The number of text chunks to process in each batch.
+        search_client (SearchClient): Azure Search client instance for indexing documents.
+        oaiclient (AzureOpenAI): Azure OpenAI client instance for generating embeddings.
+        deployment_name (str): The name of the OpenAI deployment for embeddings.
+        chunker (DynamicChunker): Instance of the DynamicChunker class for chunking text.
+    
+    Methods
+    -------
+        __init__(): Initialises the embedding service with the necessary configuration.
+        index_chunks(): Indexes each page's text (embedded or OCR) into the 
+                        Cognitive Search vector index, batching embeddings
+                        in a single API call for efficiency.
     """
     def __init__(self):
         """
-        Initialises the embedding service.
+        Initialises the embedding service with the necessary configuration.
         """
         # Initialise the JSON logger for this service
         self.logger = Logger.get_logger("EmbeddingService", json_format=True)
@@ -43,17 +83,36 @@ class EmbeddingService:
         # Bind embedding deployment so the model doesn't need to be specified in each call
         self.oaiclient.deployment_name = os.environ["AZURE_OPENAI_EMBEDDING_DEPLOYMENT"]
 
+        # Create a reusable chunker instance
+        self.chunker = DynamicChunker()
+
         self.logger.info("Initialised AzureOpenAI & SearchClient")
 
     def index_chunks(self, document_name: str, page_texts: dict[int, str]):
         """
-        Indexes each page’s text (embedded or OCR) into the Cognitive Search vector index,
-        batching embeddings in a single API call for efficiency.
+        Indexes each page's text (embedded or OCR) into the Cognitive Search
+        vector index, batching embeddings in a single API call for efficiency.
+
+        Args:
+            document_name (str): The name of the document being processed.
+            page_texts (dict[int, str]): A dictionary where keys are page numbers
+                                         and values are the extracted text from each page.
+
+        Returns:
+            None
+
+        Raises:
+            OpenAIError: If there is an error with the OpenAI API call.
+            Exception: If there is an error with the Azure Search client.
         """
         # 1) Build a flat list of all chunks
-        chunks = []
+        #chunks = []
+        #for page, text in page_texts.items():
+        #    chunks.extend(ChunkService.chunk_text(text, page))
+        chunker = self.chunker
+        chunks: list[dict] = []
         for page, text in page_texts.items():
-            chunks.extend(ChunkService.chunk_text(text, page))
+            chunks.extend(chunker.chunk_page(text, page))
 
         # 2) Process in batches
         for i in range(0, len(chunks), self.batch_size):
@@ -75,6 +134,7 @@ class EmbeddingService:
                         "id":           c["id"],
                         "documentName": document_name,
                         "page":         c["page"],
+                        "tokens":       c["tokens"],
                         "chunkText":    c["text"],
                         "embedding":    emb,
                         "createdAt":    datetime.datetime.utcnow().isoformat(),

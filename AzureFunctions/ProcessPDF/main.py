@@ -1,13 +1,10 @@
 """
-    Relative location: ProcessPDF/main.py
-    Main entry point for the Azure Function triggered by a blob upload.
-
-    This function processes the uploaded blob, logs relevant information, and
-    traces the operation using Application Insights.
-
-    Args:
-        myblob (func.InputStream): The input blob stream that triggered the function.
+ProcessPDF/main.py
+Blob-triggered Azure Function that ingests a PDF, extracts text (embedded or
+OCR), enriches it with Retrieval-Augmented Generation (RAG) checks, and writes
+a structured result to Cosmos DB for downstream analytics.
 """
+
 import os
 import time
 import azure.functions as func
@@ -18,7 +15,7 @@ from services.debug_utils import write_debug_file, is_debug_mode
 from services.pdf_utils import PDFService
 from services.db_service import DbService
 from services.rag_llm.embedding_service import EmbeddingService
-from services.rag_llm.retrieval_service import RetrievalService
+from services.rag_llm.check_runner import run_llm_checks
 
 # Initialise the JSON logger for this function
 logger = Logger.get_logger("ProcessPDF", json_format=True)
@@ -31,15 +28,6 @@ instrumentation_key = os.environ.get(
 
 # Initialise the tracer with the instrumentation key
 tracer = AppTracer(instrumentation_key)
-
-# Dummy simulation functions for OCR and ML model
-#def simulate_ocr(pdf_bytes):
-#    """
-#    Simulates OCR processing on a PDF document.
-#
-#    """
-#    return "Extracted text from PDF. This is a simulated OCR output."
-
 
 def simulate_ml_classification(text):
     """
@@ -56,7 +44,7 @@ def main(myblob: func.InputStream):
     Main entry point for the Azure Function.
     """
     with tracer.span(name="ProcessPDFOperation") as span:
-        
+
         # Log the beginning of the blob processing operation, including extra context.
         logger.info("Blob trigger function processed %s", myblob.name,
         extra={
@@ -72,7 +60,7 @@ def main(myblob: func.InputStream):
         # Read blob content (PDF bytes)
         pdf_bytes = myblob.read()
 
-        # 1) PDF validity check
+        # Check One: PDF validity check
         is_pdf = pdf_service.is_pdf(pdf_bytes)
         if not is_pdf:
             logger.error(
@@ -97,7 +85,7 @@ def main(myblob: func.InputStream):
                 prefix="debug_is_pdf"
             )
 
-        # 2) PDF page count check
+        # Check Two: PDF page count check
         page_count = pdf_service.get_page_count(pdf_bytes)
         logger.info(
             "PDF page count",
@@ -106,6 +94,24 @@ def main(myblob: func.InputStream):
                 "pageCount": page_count
             }
         )
+        if page_count < 5 or page_count > 25:
+            logger.warning(
+                "Blob is unusually short or long with %d pages",
+                page_count,
+                extra={
+                    "blob_name": myblob.name,
+                    "pageCount": page_count
+                }
+            )
+            db.store_results(
+                document_name=myblob.name,
+                data={
+                    "isPDF": True,
+                    "pageCount": page_count,
+                    "blobUrl": myblob.uri
+                }
+            )
+            return
 
         # DEBUG
         if is_debug_mode():
@@ -145,7 +151,7 @@ def main(myblob: func.InputStream):
                     })
                 return
 
-        # 3) ABN detection
+        # Check Three: ABN detection
         full_text = "\n".join(extraction_pages.values())
         abn_value = pdf_service.find_abn(full_text)
         has_abn = abn_value is not None
@@ -198,8 +204,8 @@ def main(myblob: func.InputStream):
                 "debug_file": debug_file
                 })
 
-        # --- RAG+LLM INTEGRATION POINT ---
-        
+        # --- RAG+LLM INTEGRATION POINT --- #
+
         embedding_service = EmbeddingService()
         embedding_service.index_chunks(
             document_name=myblob.name,
@@ -207,19 +213,19 @@ def main(myblob: func.InputStream):
             )
 
         # Add a delay of 20 seconds to allow for indexing
+        # TODO: is this still needed?
         time.sleep(20)
 
-        retrieval_service = RetrievalService()
 
-        pl = retrieval_service.ask_with_citations(
+        # Check Four: RAG Checks
+        # Run all checks via check_runner
+        llm_flags = run_llm_checks(
             document_name=myblob.name,
-            check_name="Profit or Loss Statement",
-            question="Does this doc contain a profit or loss statement?",
-            query="profit or loss statement"
+            system_prompt=None
         )
-            
-        # 3) Build your final payload by merging RAG results
-        results_payload = {
+
+        # Construct the base payload
+        base_payload = {
             "isPDF": is_pdf,
             "pageCount": page_count,
             "blobUrl": myblob.uri,
@@ -227,16 +233,20 @@ def main(myblob: func.InputStream):
             "isValidAFS": classification_result["is_valid_afs"],
             "afsConfidence": classification_result["afs_confidence"],
             "hasABN": has_abn,
-            "ABN": abn_value,
-            "hasProfitLoss": pl["answer"].upper().startswith("YES"),
-            "profitLossPages": pl["citations"],
+            "ABN": abn_value
+        }
+
+        # Build final payload by merging RAG results with base payload
+        final_payload = {
+            **base_payload,
+            **llm_flags
         }
 
         # Write results to database
         try:
             db.store_results(
                 document_name=myblob.name,
-                data=results_payload
+                data=final_payload
             )
         except Exception as e:
             logger.error("Error storing results in Cosmos DB",

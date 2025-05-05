@@ -1,11 +1,20 @@
 """
     services/ocr_service.py
-    Module for OCR service to extract text from blob data using Azure Cognitive Services OCR API.
+    Module for OCR service to extract text from blob data.
 
-    This module implements the OcrService class which retrieves configuration from environment
-    variables and calls the OCR API in a secure and robust manner following best practices.
+    This module uses the Azure Cognitive Services OCR API to extract text from images.
+    It includes a service class that handles the OCR operations, including
+    initiating the OCR process, polling for results, and parsing the response.
+    The service class retrieves the endpoint and subscription key from environment variables
+    and implements a robust OCR extraction method that polls for the operation result.
+    The class also includes error handling for various scenarios, including
+    request failures, processing failures, and timeouts.
+
     Classes:
-        OcrService: A service class to handle OCR operations.
+    ---------
+        OcrServiceError: Custom exception class for OCR service errors.
+        OcrService: A service class to handle OCR operations using the Azure 
+                    Cognitive Services OCR API.
 
 """
 
@@ -24,18 +33,27 @@ class OcrServiceError(Exception):
 class OcrService:
     """
     A service class to handle OCR operations using the Azure Cognitive Services OCR API.
+    This class includes methods to extract text from images, initiate the OCR process,
+    poll for results, and parse the response. It also includes error handling for various
+    scenarios, including request failures, processing failures, and timeouts.
 
-    This class retrieves the endpoint and subscription key from environment variables and
-    implements a robust OCR extraction method that polls for the operation result.
-
-    Methods:
-        extract_text(blob_data: bytes) -> Dict[int, str]:
-            Extracts text from the given blob data using OCR.
+    Attributes
+    ----------
+        endpoint (str): The endpoint URL for the Azure Cognitive Services OCR API.
+        subscription_key (str): The subscription key for the Azure Cognitive Services OCR API.
+        logger (Logger): Logger instance for logging messages.
+        read_api_url (str): The URL for the READ API of the OCR service.
+        headers (dict): The headers to be used in the API requests.
+        
+    Methods
+    -------
+        __init__(): Initialises the OCR service with the endpoint and subscription key.
+        extract_text(): Extracts text from the given blob data.
+        _parse_read_results(): Parses the OCR read results JSON and concatenates the extracted text.
     """
     def __init__(self):
         """
-        Initialises the OCR service with the endpoint and subscription key 
-        from environment variables.
+        Initialises the OCR service with the endpoint and subscription key.
         """
         self.endpoint = os.environ["COMPUTER_VISION_ENDPOINT"]
         self.subscription_key = os.environ["COMPUTER_VISION_KEY"]
@@ -61,23 +79,21 @@ class OcrService:
         timeout: int = 60,
         poll_interval: float = 1.0) -> Dict[int, str]:
         """
-        Extracts text from the given blob data using the Azure Cognitive Services OCR API.
+        Extracts text from the given blob data using the Azure Cognitive 
+        Services OCR API.
 
         Args:
-            blob_data (bytes): The binary data of the blob from which text 
-            needs to be extracted.
-
-            timeout (int, optional): Maximum time in seconds to wait for the 
-            OCR process to complete.
-
-            poll_interval (float, optional): Time in seconds between 
-            status polls.
+            blob_data (bytes): The blob data to be processed.
+            timeout (int): The maximum time to wait for the OCR operation to complete (in seconds).
+            poll_interval (float): The interval between polling requests (in seconds).
 
         Returns:
-            Dict[int,str]: Mapping of page number → concatenated lines on that page.
+            Dict[int, str]: A dictionary mapping page numbers to the concatenated lines of text on that page.
 
         Raises:
-            Exception: If the OCR API call fails, processing fails, or times out.
+            OcrServiceError: If the OCR API call fails or if the processing fails.
+            TimeoutError: If the OCR processing times out.
+
         """
         try:
             # Initiate the OCR operation
@@ -129,10 +145,15 @@ class OcrService:
         Parses the OCR read results JSON and concatenates the extracted text.
 
         Args:
-            result_json (dict): The JSON response from the OCR API.
+            result_json (dict): The JSON response from the OCR API containing 
+            the read results.
 
         Returns:
-            Dict[int,str]: Mapping of page number → concatenated lines on that page.
+            Dict[int, str]: A dictionary mapping page numbers to the 
+            concatenated lines of text on that page.
+
+        Raises:
+            KeyError: If the expected keys are not found in the JSON response.
         """
         pages = result_json.get("analyzeResult", {}).get("readResults", [])
         page_texts: Dict[int, str] = {}

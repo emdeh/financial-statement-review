@@ -1,7 +1,15 @@
 """
 services/pdf_utils.py
-Module docstring.
-This module provides utility functions for working with PDF files.
+Module for PDF utilities.
+
+This module provides a service class to handle PDF operations, including
+extracting text from PDF files. It includes methods to extract text from
+digitally generated PDFs and to check if the provided bytes represent
+a PDF file.
+
+Classes:
+--------
+    PDFService: A service class to handle PDF operations.
 """
 
 import io
@@ -13,14 +21,23 @@ from services.logger import Logger
 class PDFService:
     """
     A service class to handle PDF operations.
-    
-    This class provides methods to extract text from PDF files, both digitally 
-    generated and scanned.
-    
-    Methods:
-        extract_embedded_text(pdf_bytes: bytes) -> str:
-            Attempts to extract text directly from a digitally generated PDF 
-            using PyPDF2.
+    This class includes methods to extract text from digitally generated
+    PDFs and to check if the provided bytes represent a PDF file.
+
+    Attributes
+    ----------
+        logger (Logger): Logger instance for logging messages.
+
+    Methods
+    -------
+        __init__() Initialises the PDF service.
+        is_pdf(): Checks if the provided bytes represent a PDF file.
+        extract_embedded_text(): Extracts text from a digitally generated PDF 
+        using PyPDF2.
+        get_page_count(): Returns the number of pages in the PDF.
+        find_abn(): Searches the extracted text for an Australian Business 
+        Number (ABN).
+
     """
 
     def __init__(self):
@@ -32,22 +49,32 @@ class PDFService:
 
     def is_pdf(self, pdf_bytes: bytes) -> bool:
         """
-        Checks if the provided bytes represent a PDF file by looking 
-        for the %PDF- header.
+        Checks if the provided bytes represent a PDF file.
+
+        Args:
+            pdf_bytes (bytes): PDF file content.
+
+        Returns:
+            bool: True if the bytes represent a PDF file, False otherwise.
+
+        Raises:
+            None
         """
         return pdf_bytes.startswith(b"%PDF-")
 
     def extract_embedded_text(self, pdf_bytes: bytes) -> Dict[int, str]:
         """
-        Attempts to extract text directly from a digitally generated PDF 
-        using PyPDF2.
-        
+        Extracts text from a digitally generated PDF using PyPDF2.
+
         Args:
             pdf_bytes (bytes): PDF file content.
-        
-        RReturns:
-            Dict[int,str]: Mapping of page number → extracted text
-                           (empty string if no text on that page).
+
+        Returns:
+            Dict[int, str]: A dictionary where keys are page numbers and values
+            are the extracted text from each page.
+
+        Raises:
+            Exception: If there is an error extracting text from the PDF.
         """
         page_texts: Dict[int, str] = {}
         try:
@@ -66,7 +93,16 @@ class PDFService:
 
     def get_page_count(self, pdf_bytes: bytes) -> int | None:
         """
-        Returns the number of pages in the PDF, or None if it can't be read.
+        Returns the number of pages in the PDF.
+
+        Args:
+            pdf_bytes (bytes): PDF file content.
+
+        Returns:
+            int | None: The number of pages in the PDF, or None if an error occurs.
+
+        Raises:
+            Exception: If there is an error counting the pages in the PDF.
         """
         try:
             reader = PdfReader(io.BytesIO(pdf_bytes))
@@ -79,8 +115,16 @@ class PDFService:
 
     def find_abn(self, text: str) -> str | None:
         """
-        Search the extracted text for an Australian Business Number (ABN).
-        Returns the 11-digit ABN (no spaces) if found, else None.
+        Searches the extracted text for an Australian Business Number (ABN).
+
+        Args:
+            text (str): The text extracted from the PDF.
+
+        Returns:
+            str | None: The ABN if found, or None if not found.
+
+        Raises:
+            None
         """
         # Look for patterns like "12 345 678 901" or "12345678901"
         match = re.search(r"\b(\d{2}\s?\d{3}\s?\d{3}\s?\d{3})\b", text)

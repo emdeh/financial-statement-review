@@ -1,6 +1,16 @@
 """
 services/debug_utils.py
-This module contains utility functions for debugging purposes.
+Module for debugging utilities.
+
+This module provides utility functions for debugging purposes.
+It includes a function to write debug information to a file
+and a function to check if the application is running in debug mode.
+
+Functions:
+--------
+    write_debug_file(): Writes debug information to a file.
+    is_debug_mode(): Checks if the application is running in debug mode.
+
 """
 
 import os
@@ -9,7 +19,21 @@ import json
 
 def write_debug_file(content: str, prefix: str = "debug_output") -> str:
     """
-    Writes the provided content to a debug file and returns the file path.
+    A utility function to write debug information to a file.
+    This function creates a directory named 'debug' if it does not exist,
+    and writes the provided content to a file with a timestamped name.
+
+    Args:
+        content (str): The content to be written to the debug file.
+        prefix (str): The prefix for the debug file name (default is "debug_output").
+
+    Returns:
+        str: The path to the created debug file.
+
+    Raises:
+        OSError: If there is an error creating the directory or writing to the file.
+        TypeError: If the content is not a string and cannot be converted to a string.
+        ValueError: If the content cannot be serialized to JSON.
     """
     debug_dir = "debug"
     os.makedirs(debug_dir, exist_ok=True)
@@ -26,6 +50,22 @@ def write_debug_file(content: str, prefix: str = "debug_output") -> str:
 
 def is_debug_mode() -> bool:
     """
-    Determines if debug mode is enabled by checking the DEBUG_MODE environment variable.
+    Checks if the application is running in debug mode.
+
+    This function checks the environment variable "DEBUG_MODE" to determine
+    if the application is in debug mode. If the variable is set to "true",
+    the function returns True; otherwise, it returns False.
+
+    Args:
+        None
+
+    Returns:
+        bool: True if the application is in debug mode, False otherwise.
+
+    Raises:
+        KeyError: If the "DEBUG_MODE" environment variable is not set.
+        ValueError: If the value of "DEBUG_MODE" is not a valid boolean string.
+        TypeError: If the value of "DEBUG_MODE" is not a string.
+        OSError: If there is an error accessing the environment variable.
     """
     return os.environ.get("DEBUG_MODE", "false").lower() == "true"

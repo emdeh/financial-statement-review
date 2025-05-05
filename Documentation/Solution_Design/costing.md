@@ -1,3 +1,5 @@
+#### [Back Home](/README.md)
+
 # Sizing Estimator
 
 To evaluate the potential operating costs for the solution, please use the [Sizing Estimator](https://azure.com/e/8dabebdeac3443399f1eedc97383f4da). Below are clearly explained assumptions and parameters you can input into the estimator to tailor cost projections to your specific scenario.
@@ -69,3 +71,6 @@ To refine estimates, use the [Azure Cosmos DB Capacity Calculator](https://cosmo
 ---
 
 These clearly defined assumptions will help you accurately project costs based on your expected usage and easily adjust your scenarios as required.
+
+---
+#### [Back Home](/README.md)

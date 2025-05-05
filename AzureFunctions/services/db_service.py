@@ -2,7 +2,12 @@
 services/db_service.py
 Module for database service to handle database operations.
 
+This module provides a service class to interact with Azure Cosmos DB for
+storing and retrieving document processing results. It includes methods for
+upserting items into the database and handling exceptions.
+
 Classes:
+--------
     DbService: A service class to handle database operations.
 
 """
@@ -18,12 +23,31 @@ from services.db_models import DocumentResult
 class DbService:
     """
     A service class to handle database operations.
+    This class interacts with Azure Cosmos DB to store and retrieve
+    document processing results.
 
-    Methods:
+    Attributes
+    ----------
+        logger (Logger): Logger instance for logging messages.
+        key (str): Key for authenticating with Azure Cosmos DB.
+        account_uri (str): URI of the Cosmos DB account.
+        database_name (str): Name of the Cosmos DB database.
+        container_name (str): Name of the Cosmos DB container.
+        client (CosmosClient): Cosmos DB client instance.
+        database (Database): Cosmos DB database client instance.
+        container (Container): Cosmos DB container client instance.        
+
+    Methods
+    ----------
+        __init__():
+            Initializes the DbService instance and connects to Cosmos DB.
         store_results(document_name: str, data: dict) -> dict:
             Stores the classification result in the Cosmos DB container.
     """
     def __init__(self):
+        """
+        Initialises the DbService instance and connects to Cosmos DB.
+        """
         # Initialise the JSON logger for this service
         self.logger = Logger.get_logger("DbService", json_format=True)
 
@@ -59,7 +83,6 @@ class DbService:
                     }
                     )
 
-
     def store_results(self, document_name: str, data: dict) -> dict:
         """
         Stores the classification result in the Cosmos DB container.
@@ -70,6 +93,11 @@ class DbService:
 
         Returns:
             dict: The upserted item from Cosmos DB.
+
+        Raises:
+            exceptions.CosmosHttpResponseError: 
+                If there is an error during the upsert operation.
+            
         """
         # Log entry and key metadata
         self.logger.info(
