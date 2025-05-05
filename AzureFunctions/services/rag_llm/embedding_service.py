@@ -23,7 +23,6 @@ from openai import AzureOpenAI, OpenAIError
 from azure.search.documents import SearchClient
 from azure.core.credentials import AzureKeyCredential
 from services.logger import Logger
-#from services.rag_llm.chunk_service import ChunkService
 from services.rag_llm.chunk_service import DynamicChunker
 
 class EmbeddingService:
