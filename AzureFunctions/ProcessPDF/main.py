@@ -109,15 +109,6 @@ instrumentation_key = os.environ.get(
 # Initialise the tracer with the instrumentation key
 tracer = AppTracer(instrumentation_key)
 
-# Dummy simulation functions for OCR and ML model
-#def simulate_ocr(pdf_bytes):
-#    """
-#    Simulates OCR processing on a PDF document.
-#
-#    """
-#    return "Extracted text from PDF. This is a simulated OCR output."
-
-
 def simulate_ml_classification(text):
     """
     Simulates a machine learning classification model.
@@ -149,7 +140,7 @@ def main(myblob: func.InputStream):
         # Read blob content (PDF bytes)
         pdf_bytes = myblob.read()
 
-        # 1) PDF validity check
+        # Check One: PDF validity check
         is_pdf = pdf_service.is_pdf(pdf_bytes)
         if not is_pdf:
             logger.error(
@@ -174,7 +165,7 @@ def main(myblob: func.InputStream):
                 prefix="debug_is_pdf"
             )
 
-        # 2) PDF page count check
+        # Check Two: PDF page count check
         page_count = pdf_service.get_page_count(pdf_bytes)
         logger.info(
             "PDF page count",
@@ -222,7 +213,7 @@ def main(myblob: func.InputStream):
                     })
                 return
 
-        # 3) ABN detection
+        # Check Three: ABN detection
         full_text = "\n".join(extraction_pages.values())
         abn_value = pdf_service.find_abn(full_text)
         has_abn = abn_value is not None
@@ -276,7 +267,7 @@ def main(myblob: func.InputStream):
                 })
 
         # --- RAG+LLM INTEGRATION POINT --- #
-        
+
         embedding_service = EmbeddingService()
         embedding_service.index_chunks(
             document_name=myblob.name,
@@ -288,6 +279,7 @@ def main(myblob: func.InputStream):
         time.sleep(20)
 
 
+        # Check Four: RAG Checks
         # Run all checks via check_runner
         llm_flags = run_llm_checks(
             document_name=myblob.name,
