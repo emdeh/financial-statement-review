@@ -31,18 +31,30 @@ class DynamicChunker:
     """
     Split PDF-extracted text into ~300-token chunks with adaptive overlap.
 
+    Attributes:
+        chunk_tokens (int): Max tokens per chunk (default: 300).
+        overlap_frac (float): Fractional overlap (0-1). Default: 0.1 (10 % of chunk_tokens).
+        model (str): Model name for tokenization.
+        enc (tiktoken.Encoding): Tokenizer for the specified model.
+        splitter (RecursiveCharacterTextSplitter): Text splitter for chunking text.
+
+    Methods:
+        __init__(): Initialise the chunker with settings from environment variables.
+        _token_len(): Return the number of tokens in a text string.
+        _page_blocks(): Split text into blocks based on layout gaps or uppercase headings.
+        chunk_page(): Return a list of chunks ready for embedding, with metadata.
+    
     Environment variables:
         Defined in local.settings.json
             CHUNK_TOKENS:  Max tokens per chunk (default: 300).
             CHUNK_OVERLAP: Fractional overlap (0-1). Default: 0.1  (10 % of CHUNK_TOKENS)
             AZURE_OPENAI_EMBEDDING_MODEL: Model name for tokenization.
-
-    Module variables:
-        BLANK_LINE_RE: Regex to match blank lines.
-        SHORT_CAPS_RE: Regex to match short all-caps lines.
     """
     
     def __init__(self) -> None:
+        """
+        Initialise the chunker with settings from environment variables.
+        """
         # Read settings with safe fall-backs
         self.chunk_tokens = int(os.environ.get("CHUNK_TOKENS", 300))
         overlap_frac = float(os.environ.get("CHUNK_OVERLAP", 0.1))
@@ -57,10 +69,33 @@ class DynamicChunker:
         )
 
     def _token_len(self, text: str) -> int:
+        """
+        Return the number of tokens in a text string.
+
+        Args:
+            text (str): The text string to tokenize.
+
+        Returns:
+            int: The number of tokens in the text string.
+
+        Raises:
+            ValueError: If the text string is empty.
+        """
         return len(self.enc.encode(text))
 
     def _page_blocks(self, text: str) -> List[str]:
-        """First-pass block split by layout gaps or uppercase headings."""
+        """
+        First-pass block split by layout gaps or uppercase headings.
+        
+        Args:
+            text (str): The text string to split into blocks.
+
+        Returns:
+            List[str]: A list of blocks of text, split by layout gaps or uppercase headings.
+
+        Raises:
+            ValueError: If the text string is empty.
+        """
         lines, blocks, buf = text.splitlines(), [], []
         for line in lines:
             if BLANK_LINE_RE.match(f"\n{line}\n") or SHORT_CAPS_RE.match(line):
@@ -73,7 +108,20 @@ class DynamicChunker:
         return [b for b in blocks if b]  # drop empties
 
     def chunk_page(self, text: str, page: int) -> List[Dict]:
-        """Return list of {id, page, text, tokens} ready for embedding."""
+        """
+        Return list of {id, page, text, tokens} ready for embedding.
+        
+        Args:
+            text (str): The text string to chunk.
+            page (int): The page number of the text.    
+
+        Returns:
+            List[Dict]: A list of dictionaries, each containing the chunk ID, page number,
+                        text, and token count.
+
+        Raises:
+            ValueError: If the text string is empty.
+        """
         chunks, cid = [], 0
         for block in self._page_blocks(text):
             for piece in self.splitter.split_text(block):

@@ -46,6 +46,7 @@ class EmbeddingService:
         search_client (SearchClient): Azure Search client instance for indexing documents.
         oaiclient (AzureOpenAI): Azure OpenAI client instance for generating embeddings.
         deployment_name (str): The name of the OpenAI deployment for embeddings.
+        chunker (DynamicChunker): Instance of the DynamicChunker class for chunking text.
     
     Methods
     -------

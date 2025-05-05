@@ -1,3 +1,6 @@
+#### [Back Home](/README.md)
+#### [Back to System Flow Overview](/Documentation/Solution_Design/system-flow-overview.md)
+
 # AI Search Index Schema
 
 This document details the Azure AI Search index structure used to store and retrieve text chunk embeddings and associated metadata for financial statement validation.
@@ -20,7 +23,8 @@ fields = [
     SimpleField(name="id", type=SearchFieldDataType.String, key=True),
     SimpleField(name="documentName", type=SearchFieldDataType.String, filterable=True),
     SimpleField(name="createdAt", type=SearchFieldDataType.String, filterable=True),
-    SimpleField(name="page", type=SearchFieldDataType.Int32, filterable=True),
+    SimpleField(name="page",          type=SearchFieldDataType.Int32,  filterable=True, sortable=True),
+    SimpleField(name="tokens",       type=SearchFieldDataType.Int32,  filterable=True, sortable=True),
     SearchableField(name="chunkText", type=SearchFieldDataType.String),
     SearchField(
         name="embedding",
@@ -52,7 +56,8 @@ client.create_or_update_index(index)
 | **id**          | `String`                            | Key                          | Unique chunk identifier (e.g. `6__394` for page 6, chunk sequence 394).                           |
 | **documentName**| `String`                            | Filterable                   | Original blob path or file name; scopes searches to a single document.                           |
 | **createdAt**   | `String` (ISO 8601 timestamp)       | Filterable                   | UTC timestamp when the chunk was indexed.                                                         |
-| **page**        | `Int32`                             | Filterable                   | Page number within the source PDF where the chunk originates.                                     |
+| **page**        | `Int32`                             | Filterable, Sortable                   | Page number within the source PDF where the chunk originates.                                     |
+| **tokens**        | `Int32`                             | Filterable, Sortable                   | Number of tokens in the chunk.                                     |
 | **chunkText**   | `String`                            | Searchable (full-text)       | Text content of the chunk for both keyword and semantic queries.                                  |
 | **embedding**   | `Collection(Single)` (float array)  | Vector-searchable            | 1536-dimensional vector representing the semantic meaning of `chunkText` (OpenAI embedding size). |
 
@@ -68,10 +73,10 @@ Enables fast, approximate nearest-neighbor searches over high-dimensional vector
 ---
 
 ## 4. Indexing Workflow
-1. **Chunk Generation:** The Function App’s `ChunkService` splits raw PDF text into overlapping chunks (200–500 words).
+1. **Chunk Generation:** The Function App’s `DynamicChunker` splits pages into ~300 tokens (≈ 220 English words) with 10 % overlap.
 2. **Embedding Creation:** Chunks are batched to the Azure OpenAI embeddings endpoint, returning a 1536-dim vector per chunk.
 3. **Document Indexing:** Each chunk is uploaded to AI Search with:
-   - `id`, `documentName`, `page`, `chunkText`, `embedding`, `createdAt`.
+   - `id`, `documentName`, `page`, `tokens`, `chunkText`, `embedding`, `createdAt`.
 
 ---
 
@@ -95,3 +100,7 @@ chunks = list(results)
 ---
 
 This schema and workflows ensure scalable, accurate, and performant retrieval of semantically relevant text for AI-driven validation of financial statements.
+---
+
+#### [Back to System Flow Overview](/Documentation/Solution_Design/system-flow-overview.md)
+#### [Back Home](/README.md)

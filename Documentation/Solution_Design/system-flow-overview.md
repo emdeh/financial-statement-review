@@ -1,3 +1,4 @@
+#### [Back Home](/README.md)
 ## System Flow Overview
 Imagine a financial statement is being reviewed. Here’s how the components interact:
 
@@ -24,10 +25,13 @@ Once triggered, the Azure Function executes the following steps in sequence:
    - Scans full text with a regex pattern for an 11‑digit Australian Business Number.
    - Records `hasABN=true` and the normalized `abn` value if found.
 
-5. **Chunking & Embeddings Creation**
-   - Splits each page into overlapping text chunks (~200–500 words) via a `ChunkService`.
-   - Sends batches of chunk texts to Azure OpenAI embeddings endpoint.
-   - Indexes each chunk with its vector embedding into Azure AI Search (vector index), alongside metadata (`documentName`, `page`, `chunkId`).
+5. **Dynamic Chunking & Embedding**
+   - Uses the new **`DynamicChunker`** to split each page into layout‑aware chunks of **≈ 300 tokens** (≈ 220 words) with **10 % overlap**.  
+     *Hard breaks* are inferred from blank‑line gaps and ALL‑CAPS headings, so the splitter is **heading‑agnostic**.
+   - Each chunk is enriched with metadata: `id`, `documentName`, `page`, and **`tokens`** (token count).
+   - Chunks are batched (default **20 at a time**) to the Azure OpenAI embeddings endpoint; the resulting 1 536‑dim vectors are written to the **Azure AI Search** index together with their metadata.
+
+> See the [Chunking Approach](/Documentation/Solution_Design/chunking_approach.md) for more information on chunking design choices.
 
 6. **Vector‐based Content Retrieval**
    - For each feature check (e.g. “Profit or Loss Statement”), converts the query into an embedding.
@@ -45,7 +49,7 @@ Once triggered, the Azure Function executes the following steps in sequence:
 - Any errors or unusual metrics are emitted to **Application Insights** for monitoring.
 - All secrets (keys, endpoints) are managed via **Azure Key Vault** with Managed Identity for access.
 
-> For further information on the index schema pelase see [Creating the Search Index](/Documentation/Solution_Design/creating_the_search_index.md).
+> See the [Creating the Search Index](/Documentation/Solution_Design/creating_the_search_index.md) article for more information on creating the Index from which chunks are retrieved.
 
 ### 4. Monitoring, Feedback & Reporting
 1. **Monitoring:** Application Insights captures function execution metrics (duration, failures, cold starts).
@@ -54,3 +58,5 @@ Once triggered, the Azure Function executes the following steps in sequence:
 4. **Reporting:** Power BI dashboards connect to Cosmos DB to visualise:
    - Ingestion volumes, validation pass rates, ABN detection success,
    - AI classification accuracy over time and manual override counts.
+
+#### [Back Home](/README.md)
