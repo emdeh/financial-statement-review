@@ -58,7 +58,7 @@ class ChunkService:
         length = len(text)
 
         while start < length:
-            
+
             #1 ) Pick up tentative end position
             end = min(start + ChunkService.CHUNK_SIZE, length)
 

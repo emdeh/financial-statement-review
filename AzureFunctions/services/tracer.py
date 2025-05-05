@@ -41,10 +41,6 @@ class AppTracer:
     def __init__(self, instrumentation_key, sampler_rate=1.0):
         """
         Initialises the AppTracer with the given instrumentation key and sampler rate.
-
-        Args:
-            instrumentation_key (str): The instrumentation key for Azure Application Insights.
-            sampler_rate (float): The sampling rate for tracing (default is 1.0, meaning 100% of traces are sampled).
         """
         config_integration.trace_integrations(['logging'])
 

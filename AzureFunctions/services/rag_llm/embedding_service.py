@@ -57,15 +57,6 @@ class EmbeddingService:
     def __init__(self):
         """
         Initialises the embedding service with the necessary configuration.
-        
-        Args:
-            None
-
-        Returns:
-            None
-
-        Raises:
-            KeyError: If any of the required environment variables are missing.
         """
         # Initialise the JSON logger for this service
         self.logger = Logger.get_logger("EmbeddingService", json_format=True)

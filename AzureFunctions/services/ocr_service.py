@@ -41,10 +41,10 @@ class OcrService:
     ----------
         endpoint (str): The endpoint URL for the Azure Cognitive Services OCR API.
         subscription_key (str): The subscription key for the Azure Cognitive Services OCR API.
+        logger (Logger): Logger instance for logging messages.
         read_api_url (str): The URL for the READ API of the OCR service.
         headers (dict): The headers to be used in the API requests.
-        logger (Logger): Logger instance for logging messages.
-
+        
     Methods
     -------
         __init__(): Initialises the OCR service with the endpoint and subscription key.
@@ -54,15 +54,6 @@ class OcrService:
     def __init__(self):
         """
         Initialises the OCR service with the endpoint and subscription key.
-
-        Args:
-            None
-
-        Returns:
-            None
-
-        Raises:
-            ValueError: If any of the required environment variables are missing.
         """
         self.endpoint = os.environ["COMPUTER_VISION_ENDPOINT"]
         self.subscription_key = os.environ["COMPUTER_VISION_KEY"]

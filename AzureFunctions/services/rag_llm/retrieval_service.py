@@ -1,6 +1,16 @@
 """
 services/rag_llm/retrieval_service.py
-Module docstring.
+Module for retrieval service to interact with Azure Search and OpenAI.
+
+This module provides a service class to handle retrieval operations
+using Azure Search and OpenAI. It includes methods to retrieve
+text chunks based on a query, ask the OpenAI chat deployment
+for answers with citations, and manage the Azure Search client.
+
+Classes:
+--------
+    RetrievalService: A service class to handle retrieval operations
+                      using Azure Search and OpenAI.
 """
 
 import re
@@ -15,11 +25,30 @@ from services.rag_llm.prompts import DEFAULT_SYSTEM_PROMPT
 
 class RetrievalService:
     """
-    Class docstring.
+    RetrievalService class to handle retrieval operations
+    using Azure Search and OpenAI.
+
+    Attributes
+    ----------
+        logger (Logger): Logger instance for logging messages.
+        search_client (SearchClient): Azure Search client instance for querying documents.
+        oaiclient (AzureOpenAI): Azure OpenAI client instance for generating embeddings and chat completions.
+        system_prompt (str): The default system prompt for the OpenAI chat deployment.
+        deoployment_name (str): The name of the OpenAI deployment for chat completions.
+
+    Methods
+    -------
+        __init__(): Initialises the retrieval service with the necessary configuration.
+        retrieve_chunks(): Retrieves the top k chunks from the search index based on the query.
+        ask_with_citations(): Retrieves top-k chunks for a document matching a query,
+                             then asks the OpenAI chat deployment to answer YES/NO + cite pages.
+
     """
     def __init__(self):
         """
-        Initialises the retrieval service.
+        Initialises the retrieval service with the necessary configuration.
+        Sets up the Azure Search client and OpenAI client using environment variables.
+
         """
 
         # Initialise the JSON logger for this service
@@ -51,7 +80,23 @@ class RetrievalService:
 
     def retrieve_chunks(self, document_name: str, query: str, k: int = 3):
         """
-        Retrieves the top k chunks from the search index based on the query.
+        Retrieve the top k chunks from the search index based on the query.
+        This method uses the Azure OpenAI client to generate an embedding for
+        the query, then performs a vector search in the Azure Search index
+        to find the most relevant chunks.
+
+        Args:
+            document_name (str): The name of the document to search in.
+            query (str): The query string to search for.
+            k (int): The number of top results to retrieve. Default is 3.
+
+        Returns:
+            list: A list of dictionaries containing the top k chunks
+                  with their IDs, page numbers, and text content.
+
+        Raises:
+            OpenAIError: If the embedding generation fails.
+            AzureError: If the vector search fails.
         """
 
         # 1) Embed the user query

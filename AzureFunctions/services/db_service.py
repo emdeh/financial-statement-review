@@ -29,6 +29,7 @@ class DbService:
     Attributes
     ----------
         logger (Logger): Logger instance for logging messages.
+        key (str): Key for authenticating with Azure Cosmos DB.
         account_uri (str): URI of the Cosmos DB account.
         database_name (str): Name of the Cosmos DB database.
         container_name (str): Name of the Cosmos DB container.
@@ -46,15 +47,6 @@ class DbService:
     def __init__(self):
         """
         Initialises the DbService instance and connects to Cosmos DB.
-        
-        Args:
-            None
-
-        Returns:
-            None
-
-        Raises:
-            ValueError: If any of the required environment variables are missing.
         """
         # Initialise the JSON logger for this service
         self.logger = Logger.get_logger("DbService", json_format=True)

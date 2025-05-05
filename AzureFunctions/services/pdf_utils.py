@@ -43,15 +43,6 @@ class PDFService:
     def __init__(self):
         """
         Initialises the PDF service.
-
-        Args:
-            None
-
-        Returns:
-            None
-
-        Raises:
-            None
         """
         # Initialise the JSON logger for this service
         self.logger = Logger.get_logger("PDFService", json_format=True)
