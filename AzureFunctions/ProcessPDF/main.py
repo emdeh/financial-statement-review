@@ -1,13 +1,90 @@
 """
-    Relative location: ProcessPDF/main.py
-    Main entry point for the Azure Function triggered by a blob upload.
+ProcessPDF/main.py
+Blob-triggered Azure Function that ingests a PDF, extracts text (embedded or
+OCR), enriches it with Retrieval-Augmented Generation (RAG) checks, and writes
+a structured result to Cosmos DB for downstream analytics.
 
-    This function processes the uploaded blob, logs relevant information, and
-    traces the operation using Application Insights.
+The module wires together several internal services:
 
-    Args:
-        myblob (func.InputStream): The input blob stream that triggered the function.
+- **PDFService**
+Validates the blob, counts pages, extracts embedded text,and locates an 
+Australian Business Number (ABN).
+
+- **OcrService**
+Performs OCR when embedded text is absent.
+
+- **EmbeddingService**
+Indexes page-level chunks in Azure Cognitive Search so an LLM can run 
+compliance checks.
+
+- **check_runner.run_llm_checks**
+Executes those checks and returns boolean/flag results suitable for storage.
+
+- **DbService**
+Persists the final JSON payload.
+
+In addition, Application Insights tracing and structured JSON logging will be
+enabled end-to-end.
+
+Example
+-------
+Deploy the function to an AzureFunctions App with a Blob Storage trigger
+similar to:
+
+{
+  "scriptFile": "main.py",
+  "bindings": [
+    {
+      "name": "myblob",
+      "type": "blobTrigger",
+      "direction": "in",
+      "path": "pdf-uploads/{name}",
+      "connection": "STORAGE_CONNECTION_STRING"
+    }
+  ]
+}
+
+Upload a PDF to pdf-uploads. Within seconds the log stream shows:
+INFO  Blob trigger function processed pdf-uploads/edgechurch.pdf
+INFO  Blob is a valid PDF file
+INFO  Extraction complete using embedded method
+INFO  ML classification complete
+INFO  Successfully wrote results to CosmosDB
+
+Attributes
+----------
+logger : logging.Logger
+Module-level JSON logger configured via services.logger.Logger.
+tracer : services.tracer.AppTracer
+OpenTelemetry wrapper for ApplicationInsights.
+
+Functions
+---------
+simulate_ml_classification(text: str) -> dict
+Dummy stub that classifies text as a valid Australian Financial
+Statement (AFS); replace with a real ML inference call.
+
+main(myblob: azure.functions.InputStream) -> None
+Entry point executed by Azure Functions for each uploaded blob.
+
+Notes
+-----
+Debug mode - Set the DEBUG_MODE environment variable to any truthy
+value to emit intermediate files (OCR output, ABN detection, model
+payloads) into the function's working directory.
+
+Indexing delay - A 20-second time.sleep call remains to allow 
+evaluate whether the Cognitive Search index becomes consistent sooner
+with eventual-consistency tweaks.
+
+See Also
+--------
+services.pdf_utils.PDFService
+services.ocr_service.OcrService
+services.rag_llm.embedding_service.EmbeddingService
+services.rag_llm.check_runner.run_llm_checks
 """
+
 import os
 import time
 import azure.functions as func
