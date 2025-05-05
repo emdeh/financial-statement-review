@@ -40,6 +40,10 @@ By measuring similarity between the two vectors, the model identifies the most r
 
 The LLM provides a YES or NO answer based on this analysis. If the answer is YES, it also records the original page number(s) where the information was found, facilitating human verification.
 
+> Please see [Logic Flow of RAG+LLM Checks](/Documentation/Solution_Design/how_llm_rag_checks_work.md) for a detailed explanation and logic flow for the RAG+LLM checks.
+
+### Results storage
+
 Finally, all validation results are stored in a database. This structured data is then readily available for generating real-time insights and dynamic reports.
 
 Example fields stored in Cosmos DB include:
