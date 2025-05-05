@@ -102,9 +102,10 @@ class DynamicChunker:
     Split PDF-extracted text into ~300-token chunks with adaptive overlap.
 
     Environment variables:
-        CHUNK_TOKENS:  Max tokens per chunk (default: 300).
-        CHUNK_OVERLAP: Fraction of overlap between chunks (default: 0.0).
-        AZURE_OPENAI_EMBEDDING_MODEL: Model name for tokenization.
+        Defined in local.settings.json
+            CHUNK_TOKENS:  Max tokens per chunk (default: 300).
+            CHUNK_OVERLAP: Fractional overlap (0-1). Default: 0.1  (10 % of CHUNK_TOKENS)
+            AZURE_OPENAI_EMBEDDING_MODEL: Model name for tokenization.
 
     Module variables:
         BLANK_LINE_RE: Regex to match blank lines.
