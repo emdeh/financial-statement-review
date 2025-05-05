@@ -66,14 +66,8 @@ For a detailed system flow description, please see the [System Flow Overview](/D
 
 ```bash
 ├── Documentation/
-│   ├── decompile-arm-templates.md
-│   ├── prereq.md
-│   ├── resource-overview.md
-│   ├── setting-up-the-venv.md
-│   ├── solution-brief.md
-│   ├── system-flow-overview.md
-│   ├── local-testing-storage.md
-│   └── architecture-diagram.png            # //TODO
+│   ├── Development/          # Development-related documentation
+│   └── Solution_Design/          # Solution design documentation
 │
 ├── AzureFunctions/
 │   ├── host.json
@@ -84,41 +78,30 @@ For a detailed system flow description, please see the [System Flow Overview](/D
 │   │   ├── main.py                         # Main processing logic
 │   │   └── function.json                   # Function configuration
 │   │
-│   └── services/
-│       ├── __init__.py
-│       ├── logger.py
-│       ├── tracer.py                     
-│       ├── classification_service.py            
-│       ├── db_service.py                   
-│       └── ocr_service.py                  
+│   └── services/                           # Service modules for the function       
+│       └── rag_llm/                         # RAG/LLM specific modules for the function
 │
 ├── Models/
 │   ├── Classification/
-│   │   ├── train.py                        # Training script for the document classifier
-│   │   ├── model.py                        # Model definition and utilities
-│   │   ├── predict.py                      # Inference logic (if separate)
-│   │   └── requirements.txt                # Dependencies for model training/inference
-│   └── CustomVision/                       # (Optional: for signature detection)
-│       ├── train.py
-│       ├── model.py
-│       └── requirements.txt
+│   └── CustomVision/                       # Template
 │
 ├── infra/
 │   ├── deploy.sh                           # Bash script to deploy Azure resources
 │   ├── setup.sh                            # Bash script for initial setup/configuration
 │   ├── retrain_pipeline.sh                 # Script to trigger model retraining
 │   ├── bicep/                              # Bicep templates used in infra scripts.
-│   └── scripts/                            # Contains infrastructure-related scripts                      
+│   └── scripts/                            # Contains infrastructure-related 
+│      └── create_search_index.py           # Create or refresh the index                      
 │
 ├── Notebooks/
-│   ├── Exploratory_Data_Analysis.ipynb     # For initial data exploration
-│   └── ModelTraining.ipynb                 # Jupyter notebook for training experiments
+│   ├── Exploratory_Data_Analysis.ipynb     # Template
+│   └── ModelTraining.ipynb                 # Template
 │
 ├── Tests/
-│   ├── test_document_processing.py         # Unit tests for Azure Functions logic
-│   └── test_model_classification.py        # Unit tests for classification model
+│   ├── test_document_processing.py         # Template
+│   └── test_model_classification.py        # Template
 │
-├── .gitignore                              # Ignore file (Python, VS Code, Azure Functions, etc.)
+├── .gitignore                              # Ignore file
 ├── README.md                               # High-level project overview and instructions
 ├── .code-workspace                         # See .venv setup instructions in Documentation/
 └── requirements.txt                        # Global dependencies (if applicable)
