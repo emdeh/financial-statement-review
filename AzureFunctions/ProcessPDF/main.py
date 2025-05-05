@@ -95,7 +95,7 @@ def main(myblob: func.InputStream):
             }
         )
         if page_count < 5 or page_count > 25:
-            logger.info(
+            logger.warning(
                 "Blob is unusually short or long with %d pages",
                 page_count,
                 extra={
