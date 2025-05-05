@@ -105,6 +105,10 @@ class DynamicChunker:
         CHUNK_TOKENS:  Max tokens per chunk (default: 300).
         CHUNK_OVERLAP: Fraction of overlap between chunks (default: 0.0).
         AZURE_OPENAI_EMBEDDING_MODEL: Model name for tokenization.
+
+    Module variables:
+        BLANK_LINE_RE: Regex to match blank lines.
+        SHORT_CAPS_RE: Regex to match short all-caps lines.
     """
     
     def __init__(self) -> None:

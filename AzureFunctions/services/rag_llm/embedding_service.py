@@ -23,7 +23,8 @@ from openai import AzureOpenAI, OpenAIError
 from azure.search.documents import SearchClient
 from azure.core.credentials import AzureKeyCredential
 from services.logger import Logger
-from services.rag_llm.chunk_service import ChunkService
+#from services.rag_llm.chunk_service import ChunkService
+from services.rag_llm.chunk_service import DynamicChunker
 
 class EmbeddingService:
     """
@@ -82,6 +83,9 @@ class EmbeddingService:
         # Bind embedding deployment so the model doesn't need to be specified in each call
         self.oaiclient.deployment_name = os.environ["AZURE_OPENAI_EMBEDDING_DEPLOYMENT"]
 
+        # Create a reusable chunker instance
+        self.chunker = DynamicChunker()
+
         self.logger.info("Initialised AzureOpenAI & SearchClient")
 
     def index_chunks(self, document_name: str, page_texts: dict[int, str]):
@@ -102,9 +106,13 @@ class EmbeddingService:
             Exception: If there is an error with the Azure Search client.
         """
         # 1) Build a flat list of all chunks
-        chunks = []
+        #chunks = []
+        #for page, text in page_texts.items():
+        #    chunks.extend(ChunkService.chunk_text(text, page))
+        chunker = self.chunker
+        chunks: list[dict] = []
         for page, text in page_texts.items():
-            chunks.extend(ChunkService.chunk_text(text, page))
+            chunks.extend(chunker.chunk_page(text, page))
 
         # 2) Process in batches
         for i in range(0, len(chunks), self.batch_size):
@@ -126,6 +134,7 @@ class EmbeddingService:
                         "id":           c["id"],
                         "documentName": document_name,
                         "page":         c["page"],
+                        "tokens":       c["tokens"],
                         "chunkText":    c["text"],
                         "embedding":    emb,
                         "createdAt":    datetime.datetime.utcnow().isoformat(),
