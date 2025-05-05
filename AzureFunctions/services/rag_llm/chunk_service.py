@@ -1,11 +1,37 @@
 """
 services/rag_llm/chunk_service.py
-Module docstring.
+Module for chunking text into smaller segments.
+
+This module provides a service class to handle chunking text
+into smaller segments for processing. It includes methods to
+split the text into chunks of a specified size with overlap,
+and to handle the metadata associated with each chunk.
+
+Classes:
+--------
+    ChunkService: A service class to handle text chunking operations.
 """
 
 class ChunkService:
     """
-    Class docstring.
+    A service class to handle text chunking operations.
+    This class includes methods to split the text into smaller
+    segments for processing. It allows for chunking text into
+    smaller segments of a specified size with overlap, and
+    handles the metadata associated with each chunk.
+    The chunking process is designed to ensure that the text
+    is split at appropriate boundaries, such as whitespace,
+    to avoid breaking words or sentences in the middle.
+
+    Attributes
+    ----------
+        CHUNK_SIZE (int): The maximum number of characters per chunk.
+        OVERLAP (int): The number of characters to overlap between chunks.
+    
+    Methods
+    -------
+        chunk_text(): Splits the text into chunks of a specified size with overlap.
+
     """
     CHUNK_SIZE = 500 # max chars per chunk
     OVERLAP = 100 # chars to overlap
@@ -21,6 +47,10 @@ class ChunkService:
 
         Returns:
             list[dict]: A list of dictionaries containing the chunked text and its metadata.
+
+        Raises:
+            ValueError: If the text is empty or if the page number is invalid.
+    
         """
         chunks = []
         start = 0
