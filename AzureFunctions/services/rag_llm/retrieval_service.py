@@ -87,7 +87,9 @@ class RetrievalService:
 
         Args:
             document_name (str): The name of the document to search in.
-            query (str): The query string to search for.
+            query (str): The query string to search for (this is a 100% semantic
+                    vector search, not a keyword search).
+
             k (int): The number of top results to retrieve. Default is 3.
 
         Returns:
@@ -100,6 +102,8 @@ class RetrievalService:
         """
 
         # 1) Embed the user query
+        # `query` here is a semantic vector search, not a keyword search.
+        # `query` is defined in the checks.py file in the CHECKS list.
         try:
             resp = self.oaiclient.embeddings.create(
                 model=os.environ["AZURE_OPENAI_EMBEDDING_MODEL"],

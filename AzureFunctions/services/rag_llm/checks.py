@@ -28,17 +28,35 @@ class CheckDef:
     Attributes:
     ----------
         name (str): The name of the check.
+
         field_name (str): The field name in the Pydantic model.
-        question (str): The question to be asked for the check.
-        query (str): The query to be used for the check.
-        k (int): The number of results to retrieve (default is 3).
-        system_prompt (str, optional): The system prompt to be used for the check.
+
+        question (str): The question to be asked for the check. 
+                        This is what the LLM will be asked to answer.
+
+        query (str):    The query to be used for the check.
+                        This is what is used to search the index.
+                        It is a 100% semantic-vector search, not a keyword search.
+                        It should be a string that describes the content
+                        you are looking for in the document.
+
+        k (int):    The number of results to retrieve (default is 3).
+                    This is the number of chunks to retrieve from the index
+                    for the check based on the query.
+
+        system_prompt (str, optional):  The system prompt to be used for the check.
     
     Notes:
     -----
         Checks must match the DocumentResult model in db_models.py.
         For example if you have `hasBalanceSheet` in the model, you musth have 
         BalanceSheet in the checks.py.
+
+        `query` is what is used to search the index, and question is what is 
+        asked of the LLM.
+
+        Importantly, the `query` is a 100% semantic-vector search, not a 
+        keyword search.
     """
     name: str
     field_name: str
@@ -51,8 +69,8 @@ CHECKS = [
     CheckDef(
         name="Profit or Loss Statement",
         field_name="ProfitLoss",
-        question="Does this doc contain a profit or loss statement?",
-        query="profit or loss statement"
+        question="Does this doc contain a profit or loss statement? Sometimes referred to as a P&L or statement.",
+        query="profit or loss (P&L) statement"
     ),
     CheckDef(
         name="Balance Sheet",
