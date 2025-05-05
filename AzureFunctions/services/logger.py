@@ -1,22 +1,20 @@
 """
-    Relative location: services/logger.py
+services/logger.py
+Module for logging service to handle logging operations.
 
-    This module provides a Logger class for creating and configuring loggers 
-    with support for JSON formatting.
+This module provides a logger class to create and configure loggers for
+different services. It supports both JSON formatted and plain text logs.
+It includes methods to set up console and file handlers, and to format
+the logs based on the specified format. The logger can be configured
+to log to a file with a timestamped filename, and it ensures that the
+log directory exists before writing logs. The logger can be used
+to log messages at different levels (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+and can be easily integrated into other modules for consistent logging
+across the application.
 
-    Classes:
-        Logger: A class that provides methods to create and configure loggers.
-
-    Usage example:
-
-        logger = Logger.get_logger(
-            name='my_logger',
-            level=logging.INFO,
-            log_to_file=True,
-            log_file='/path/to/logfile.log',
-            json_format=True
-
-        logger.info('This is an info message')
+Classes:
+--------
+    Logger: A class that provides methods to create and configure loggers.
 """
 
 import os
@@ -27,13 +25,17 @@ from pythonjsonlogger import jsonlogger
 class Logger:
     """
     A class that provides methods to create and configure loggers.
+    This class supports both JSON formatted and plain text logs.
 
     Attributes:
+    ----------
         None
 
     Methods:
-        get_logger(name, level, log_to_file, log_file, json_format):
-            Returns a configured logger with either JSON formatted or plain text logs.
+    -------
+        get_logger(): Returns a configured logger with either JSON formatted 
+        or plain text logs.
+
     """
 
     @staticmethod
@@ -46,15 +48,20 @@ class Logger:
         """
         Returns a configured logger with either JSON formatted or plain text logs.
 
-        Parameters:
+        Args:
             name (str): The name of the logger.
-            level (int): The logging level.
-            log_to_file (bool): Whether to log to file.
-            log_file (str): The path to the log file.
-            json_format (bool): Whether to format logs as JSON.
+            level (int): The logging level (default is logging.DEBUG).
+            log_to_file (bool): Whether to log to a file (default is False).
+            log_file (str): The path to the log file (if log_to_file is True).
+            json_format (bool): Whether to use JSON formatting for logs (default is True).
 
         Returns:
-            logging.Logger: Configured logger instance
+            logger (logging.Logger): A configured logger instance.
+
+        Raises:
+            ImportError: If jsonlogger is required but not installed.
+            OSError: If there is an error creating the log directory or file.
+            TypeError: If the logger name is not a string.
         """
         logger = logging.getLogger(name)
         logger.setLevel(level)
