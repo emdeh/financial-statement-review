@@ -94,6 +94,24 @@ def main(myblob: func.InputStream):
                 "pageCount": page_count
             }
         )
+        if page_count < 5 or page_count > 25:
+            logger.info(
+                "Blob is unusually short or long with %d pages",
+                page_count,
+                extra={
+                    "blob_name": myblob.name,
+                    "pageCount": page_count
+                }
+            )
+            db.store_results(
+                document_name=myblob.name,
+                data={
+                    "isPDF": True,
+                    "pageCount": page_count,
+                    "blobUrl": myblob.uri
+                }
+            )
+            return
 
         # DEBUG
         if is_debug_mode():
