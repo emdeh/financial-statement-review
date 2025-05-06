@@ -132,7 +132,7 @@ requests==2.32.3
 requests-oauthlib==2.0.0
 rpds==5.1.0
 scp==0.15.0
-semver==2.13.0
+semver==3.0.4
 six==1.17.0
 sshtunnel==0.1.5
 tabulate==0.9.0
