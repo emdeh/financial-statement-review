@@ -50,7 +50,13 @@ client.create_or_update_index(index)
 
 ---
 
-## 2. Field Schema
+## 2. Scoring Profiles
+
+TODO
+
+---
+
+## 3. Field Schema
 | Field Name      | Type                                | Role                         | Description                                                                                       |
 |-----------------|-------------------------------------|------------------------------|---------------------------------------------------------------------------------------------------|
 | **id**          | `String`                            | Key                          | Unique chunk identifier (e.g. `6__394` for page 6, chunk sequence 394).                           |
@@ -63,7 +69,7 @@ client.create_or_update_index(index)
 
 ---
 
-## 3. Vector Search Configuration
+## 4. Vector Search Configuration
 - **Algorithm:** HNSW (Hierarchical Navigable Small World)
 - **Dimensions:** 1536 (must match the embedding model output)
 - **Profile Name:** `hnsw-config`
@@ -72,7 +78,7 @@ Enables fast, approximate nearest-neighbor searches over high-dimensional vector
 
 ---
 
-## 4. Indexing Workflow
+## 5. Indexing Workflow
 1. **Chunk Generation:** The Function App’s `DynamicChunker` splits pages into ~300 tokens (≈ 220 English words) with 10 % overlap.
 2. **Embedding Creation:** Chunks are batched to the Azure OpenAI embeddings endpoint, returning a 1536-dim vector per chunk.
 3. **Document Indexing:** Each chunk is uploaded to AI Search with:
@@ -80,7 +86,7 @@ Enables fast, approximate nearest-neighbor searches over high-dimensional vector
 
 ---
 
-## 5. Retrieval Workflow
+## 6. Retrieval Workflow
 1. **Query Embedding:** A query (e.g., “profit or loss statement”) is sent to the same embeddings endpoint to produce a vector.
 2. **Filtered Vector Search:** Execute:
 
@@ -95,7 +101,10 @@ results = search_client.search(
 chunks = list(results)
 ```
 
-3. **Usage:** Returned chunks feed into the LLM prompt builder, enabling precise YES/NO answers with page citations.
+3. **Optional scoring profile:**
+TODO
+
+4. **Usage:** Returned chunks feed into the LLM prompt builder, enabling precise YES/NO answers with page citations.
 
 ---
 

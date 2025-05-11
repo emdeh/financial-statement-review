@@ -64,6 +64,8 @@ class CheckDef:
     query: str
     k: int = 3
     system_prompt: str = None
+    scoring_profile: str = None
+    scoring_parameters: list = None
 
 CHECKS = [
     CheckDef(
@@ -84,5 +86,22 @@ CHECKS = [
         question="Does this doc contain a cash flow statement?",
         query="cash flow statement"
     ),
+    CheckDef(
+    name="Going Concern",
+    field_name="GoingConcern",
+    question="""Only return "Yes" if this doc actively states a material uncertainty or doubt about the company's ability to continue as a going concern—for example:
+        - “The directors have significant doubt about the company's ability to continue…”
+        - “Events cast material uncertainty over the entity's going concern assumption.”
+        - “Current liabilities exceed current assets by $X, which may jeopardise continuity.”
+        
+    Return “No” for:
+        - Boiler-plate language in the “Responsibilities of Directors/Auditor” section.
+        - Any generic mention of the term “going concern.”
+    Examples of boilerplate language:
+        - "If we conclude that a material uncertainty exists, we are required to draw attention in our auditor's report to the related disclosures in the financial report or, if such disclosures are inadequate, to modify our opinion. Our conclusions are based on the audit evidence obtained up to the date of our auditor's report. However, future events or conditions may cause the Company to cease to continue as a going concern."
+        """,
+    query="significant doubt material uncertainty unable to continue foreseeable future",
+    scoring_profile="materialUncertaintyBoost",
+    scoring_parameters=["tags-material uncertainty,significant doubt,probable"],
+)
 ]
-

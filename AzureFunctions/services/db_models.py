@@ -88,6 +88,8 @@ class DocumentResult(BaseModel):
     balanceSheetPages: Optional[list[int]] = None
     hasCashFlow: Optional[bool] = None
     cashFlowPages: Optional[list[int]] = None
+    hasGoingConcern: Optional[bool] = None
+    goingConcernPages: Optional[list[int]] = None
     timestamp: datetime
 
     class Config:

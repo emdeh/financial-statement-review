@@ -8,6 +8,11 @@ from azure.core.credentials import AzureKeyCredential
 from azure.search.documents.indexes import SearchIndexClient
 from azure.search.documents.indexes.models import (
     SearchIndex,
+    ScoringProfile,
+    TextWeights,
+    TagScoringFunction,
+    ScoringFunctionInterpolation,
+    TagScoringParameters,
     SimpleField,
     SearchFieldDataType,
     SearchableField,
@@ -36,7 +41,7 @@ fields = [
     SimpleField(name="createdAt",     type=SearchFieldDataType.String, filterable=True),
     SimpleField(name="page",          type=SearchFieldDataType.Int32,  filterable=True, sortable=True), # added sortable=True
     SimpleField(name="tokens",       type=SearchFieldDataType.Int32,  filterable=True, sortable=True), # added
-    SearchableField(name="chunkText", type=SearchFieldDataType.String),
+    SearchableField(name="chunkText", type=SearchFieldDataType.String, filterable=True,),
     SearchField(
         name="embedding",
         type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
@@ -58,10 +63,28 @@ vector_search = VectorSearch(
         ]
     )
 
+# Scoring profiles
+scoring_profiles = [
+    ScoringProfile(
+        name="materialUncertaintyBoost",
+        text_weights=TextWeights(weights={"chunkText": 1.0}),
+        functions=[
+            TagScoringFunction(
+                field_name="chunkText",
+                boost=5.0,
+                interpolation=ScoringFunctionInterpolation.LINEAR,
+                # The name of the scoring-parameter to supply at query time
+                parameters=TagScoringParameters(tags_parameter="tags")
+            )
+        ]
+    )
+]
+
 index = SearchIndex(
     name=index_name,
     fields=fields,
-    vector_search=vector_search
+    vector_search=vector_search,
+    scoring_profiles=scoring_profiles,
 )
 
 client = SearchIndexClient(endpoint, credential=AzureKeyCredential(admin_key))

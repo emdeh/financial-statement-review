@@ -78,7 +78,7 @@ class RetrievalService:
 
         self.logger.info("Initialised AzureOpenAI & SearchClient")
 
-    def retrieve_chunks(self, document_name: str, query: str, k: int = 3):
+    def retrieve_chunks(self, document_name: str, query: str, k: int = 5, scoring_profile: str = None, scoring_parameters: list = None):
         """
         Retrieve the top k chunks from the search index based on the query.
         This method uses the Azure OpenAI client to generate an embedding for
@@ -151,7 +151,9 @@ class RetrievalService:
                 filter=odata_filter,
                 select=["id", "page", "chunkText"],
                 timeout=20,
-                top=k
+                top=k,
+                scoring_profile=scoring_profile,
+                scoring_parameters=scoring_parameters,
             )
 
             # Very important to "materialise" the SearchPaged iterator into a list.
@@ -201,14 +203,16 @@ class RetrievalService:
                         question: str,
                         query: str,
                         k: int = 3,
-                        system_prompt: str = None
-                    ):
+                        system_prompt: str = None,
+                        scoring_profile: str = None,
+                        scoring_parameters: list[str] = None
+                    ) -> dict:
         """
         Retrieve top-k chunks for `document_name` matching `query`, then
         ask the AzureOpenAI chat deployment to answer YES/NO + cite pages.
         """
         # 1) retrieve relevant chunks
-        chunks = self.retrieve_chunks(document_name, query, k)
+        chunks = self.retrieve_chunks(document_name, query, k, scoring_profile, scoring_parameters)
         # print(f"DEBUG - Retrieved {len(chunks)} chunks for query '{query}'")
 
         # 2) build the prompt with inline citations
