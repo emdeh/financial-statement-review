@@ -66,30 +66,32 @@ class CheckDef:
     system_prompt: str = None
     scoring_profile: str = None
     scoring_parameters: list = None
+    filter_patterns: list[str] = None
+    include_patterns: list[str] = None
 
 CHECKS = [
     CheckDef(
         name="Profit or Loss Statement",
         field_name="ProfitLoss",
-        question="Does this doc contain a profit or loss statement? Sometimes referred to as a P&L or statement.",
+        question="Does this doc contain a profit or loss statement in a tabulated format, comparring the current reporting period to the previous financial year? Sometimes referred to as a P&L or statement or other comphrensive income",
         query="profit or loss (P&L) statement"
     ),
     CheckDef(
         name="Balance Sheet",
         field_name="BalanceSheet",
-        question="Does this doc contain a balance sheet?",
+        question="Does this doc contain a statement of changes in equity in a tabulated format, comparing the current reporting period to the previous financial year?",
         query="balance sheet"
     ),
     CheckDef(
         name="Cash Flow Statement",
         field_name="CashFlow",
-        question="Does this doc contain a cash flow statement?",
+        question="Does this doc contain a statement of cash flow in a tabulated format, comparing the current reporting period to the previous financial year?",
         query="cash flow statement"
     ),
     CheckDef(
     name="Going Concern",
     field_name="GoingConcern",
-    question="""Only return "Yes" if this doc actively states a material uncertainty or doubt about the company's ability to continue as a going concern—for example:
+    question="""Does this doc actively state a material uncertainty or doubt about the company's ability to continue as a going concern? For example:
         - “The directors have significant doubt about the company's ability to continue…”
         - “Events cast material uncertainty over the entity's going concern assumption.”
         - “Current liabilities exceed current assets by $X, which may jeopardise continuity.”
@@ -102,5 +104,14 @@ CHECKS = [
     query="significant doubt material uncertainty unable to continue foreseeable future",
     scoring_profile="materialUncertaintyBoost",
     scoring_parameters=["tags-material uncertainty,significant doubt,probable"],
-)
+    filter_patterns=[
+            r"Responsibilities of Directors",
+            r"Auditor's Responsibilities",
+            r"Independent Audit Report to the members(?!.*Material Uncertainty)",
+            r"Appendix"
+        ],
+    include_patterns=[
+        r"material uncertainty related to the going concern"
+        ]
+    )
 ]

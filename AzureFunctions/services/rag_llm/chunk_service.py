@@ -67,6 +67,14 @@ class DynamicChunker:
             chunk_size   = self.chunk_tokens,
             chunk_overlap= int(self.chunk_tokens * overlap_frac),
         )
+        # DEBUG
+        print("DEBUG DYNAMIC CHUNKER INIT")
+        print(f"DEBUG CHUNK TOKENS: {self.chunk_tokens}")
+        print(f"DEBUG CHUNK OVERLAP: {overlap_frac}")
+        print(f"DEBUG SPLITTER.chunk_overlap: {self.splitter._chunk_overlap}")
+        print(f"DEBUG SPLITTER.chunk_size: {self.splitter._chunk_size}")
+
+
 
     def _token_len(self, text: str) -> int:
         """
@@ -83,29 +91,29 @@ class DynamicChunker:
         """
         return len(self.enc.encode(text))
 
-    def _page_blocks(self, text: str) -> List[str]:
-        """
-        First-pass block split by layout gaps or uppercase headings.
-        
-        Args:
-            text (str): The text string to split into blocks.
-
-        Returns:
-            List[str]: A list of blocks of text, split by layout gaps or uppercase headings.
-
-        Raises:
-            ValueError: If the text string is empty.
-        """
-        lines, blocks, buf = text.splitlines(), [], []
-        for line in lines:
-            if BLANK_LINE_RE.match(f"\n{line}\n") or SHORT_CAPS_RE.match(line):
-                if buf:
-                    blocks.append("\n".join(buf).strip())
-                    buf = []
-            buf.append(line)
-        if buf:
-            blocks.append("\n".join(buf).strip())
-        return [b for b in blocks if b]  # drop empties
+    #def _page_blocks(self, text: str) -> List[str]:
+    #    """
+    #    First-pass block split by layout gaps or uppercase headings.
+    #    
+    #    Args:
+    #        text (str): The text string to split into blocks.
+#
+    #    Returns:
+    #        List[str]: A list of blocks of text, split by layout gaps or uppercase headings.
+#
+    #    Raises:
+    #        ValueError: If the text string is empty.
+    #    """
+    #    lines, blocks, buf = text.splitlines(), [], []
+    #    for line in lines:
+    #        if BLANK_LINE_RE.match(f"\n{line}\n") or SHORT_CAPS_RE.match(line):
+    #            if buf:
+    #                blocks.append("\n".join(buf).strip())
+    #                buf = []
+    #        buf.append(line)
+    #    if buf:
+    #        blocks.append("\n".join(buf).strip())
+    #    return [b for b in blocks if b]  # drop empties
 
     def chunk_page(self, text: str, page: int) -> List[Dict]:
         """
@@ -123,15 +131,15 @@ class DynamicChunker:
             ValueError: If the text string is empty.
         """
         chunks, cid = [], 0
-        for block in self._page_blocks(text):
-            for piece in self.splitter.split_text(block):
-                chunks.append(
-                    {
-                        "id":     f"{page}_{cid}",
-                        "page":   page,
-                        "text":   piece,
-                        "tokens": self._token_len(piece),
-                    }
-                )
-                cid += 1
+        #for piece in self._page_blocks(text):
+        for piece in self.splitter.split_text(text):
+            chunks.append(
+                {
+                    "id":     f"{page}_{cid}",
+                    "page":   page,
+                    "text":   piece,
+                    "tokens": self._token_len(piece),
+                }
+            )
+            cid += 1
         return chunks

@@ -53,6 +53,7 @@ def run_llm_checks(document_name: str, system_prompt: str = None) -> dict:
             system_prompt=system_prompt or chk.system_prompt,
             scoring_profile=chk.scoring_profile,
             scoring_parameters=chk.scoring_parameters,
+            filter_patterns=chk.filter_patterns
         )
         # build the exact field names your Pydantic model expects:
         flag_key  = f"has{chk.field_name}" # e.g. "hasProfitLoss"

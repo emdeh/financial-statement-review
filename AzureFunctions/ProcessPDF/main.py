@@ -214,7 +214,7 @@ def main(myblob: func.InputStream):
 
         # Add a delay of 20 seconds to allow for indexing
         # TODO: is this still needed?
-        time.sleep(20)
+        # time.sleep(20)
 
 
         # Check Four: RAG Checks

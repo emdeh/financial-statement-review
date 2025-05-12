@@ -15,6 +15,7 @@ Classes:
 
 import re
 import os
+import tiktoken
 from azure.search.documents import SearchClient
 from azure.search.documents.models import VectorizedQuery
 from azure.core.credentials import AzureKeyCredential
@@ -22,6 +23,7 @@ from azure.core.exceptions import AzureError
 from openai import AzureOpenAI, OpenAIError
 from services.logger import Logger
 from services.rag_llm.prompts import DEFAULT_SYSTEM_PROMPT
+from services.rag_llm.text_utils import clean_text
 
 class RetrievalService:
     """
@@ -71,6 +73,12 @@ class RetrievalService:
 
         # Bind chat deployment so the model doesn't need to be specified in each call
         self.oaiclient.deployment_name = os.environ["AZURE_OPENAI_CHAT_DEPLOYMENT"]
+
+        enc = tiktoken.encoding_for_model(
+            os.environ["AZURE_OPENAI_CHAT_MODEL"]
+        )
+        self._bias_yes = enc.encode(" yes")[0]
+        self._bias_no  = enc.encode(" no")[0]
 
         # Set the default system prompt
         # Can override in env var deployment if needed.
@@ -205,14 +213,48 @@ class RetrievalService:
                         k: int = 3,
                         system_prompt: str = None,
                         scoring_profile: str = None,
-                        scoring_parameters: list[str] = None
+                        scoring_parameters: list[str] = None,
+                        filter_patterns: list[str] = None,
+                        include_patterns: list[str] = None
                     ) -> dict:
         """
         Retrieve top-k chunks for `document_name` matching `query`, then
         ask the AzureOpenAI chat deployment to answer YES/NO + cite pages.
         """
         # 1) retrieve relevant chunks
-        chunks = self.retrieve_chunks(document_name, query, k, scoring_profile, scoring_parameters)
+        chunks = self.retrieve_chunks(
+            document_name,
+            query,
+            k,
+            scoring_profile,
+            scoring_parameters
+            )
+        
+        if filter_patterns or include_patterns:
+            def keep(chunk):
+                raw = chunk["text"]
+                text = clean_text(raw)
+
+                # If it matches any include_pattern, always keep it
+                if include_patterns and any(re.search(p, text, re.IGNORECASE)
+                                            for p in include_patterns):
+                    return True
+
+                # If it matches any filter_pattern, discard it
+                if filter_patterns and any(re.search(p, text, re.IGNORECASE)
+                                            for p in filter_patterns):
+                    return False
+
+                # Otherwise, keep it
+                return True
+            chunks = [c for c in chunks if keep(c)]
+        
+        # DEBUG: Inspect each chunk's context
+        for c in chunks:
+            print("DEBUG - CHUNKS INCLUDED IN PROMPT")
+            print(f"DEBUG ─ CHUNK ID={c['id']}, page={c['page']}, tokens≈{len(c['text'].split())}")
+            print(f"DEBUG ─ TEXT SNIPPET: {c['text'][:200]!r}\n")
+        
         # print(f"DEBUG - Retrieved {len(chunks)} chunks for query '{query}'")
 
         # 2) build the prompt with inline citations
@@ -220,19 +262,21 @@ class RetrievalService:
             f"QUESTION: {question}",
             "Use the following excerpts to answer:",
             ]
+
         for c in chunks:
             lines.append(f"- (Page {c['page']}) {c['text']}")
+
         lines.extend([
             "",
             "Answer **YES** or **NO** only.",
             "If YES, provide citations exactly like this: CITATIONS: [12, 34]."
         ])
         user_prompt = "\n".join(lines)
-        # print(f"DEBUG - User prompt: {user_prompt}")
+        # print(f"DEBUG - USER prompt: {user_prompt}")
 
         # 3) Choose which system message to use
         sys_msg = system_prompt or self.system_prompt
-        # print(f"DEBUG - Using system prompt: {sys_msg}")
+        # print(f"DEBUG - SYSTEM prompt: {sys_msg}")
 
         # 4) call the chat completion endpoint
         try:
@@ -241,10 +285,18 @@ class RetrievalService:
                 messages=[
                     {"role": "system", "content": sys_msg},
                     {"role": "user",   "content": user_prompt}
-                ]
+                ],
+                temperature=0.0,
+                top_p=0,
+                max_tokens=10,
+                logit_bias={
+                    str(self._bias_yes): 50,
+                    str(self._bias_no):  50
+                },
             )
             answer = chat_resp.choices[0].message.content.strip()
-            print(f" DEBUG - Chat response: {answer}")
+            # print(f"DEBUG - chat_resp: {chat_resp}")
+            # print(f" DEBUG - Chat response: {answer}")
 
         except OpenAIError as err:
             self.logger.error(

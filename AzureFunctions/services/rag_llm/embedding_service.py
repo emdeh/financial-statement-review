@@ -24,6 +24,7 @@ from azure.search.documents import SearchClient
 from azure.core.credentials import AzureKeyCredential
 from services.logger import Logger
 from services.rag_llm.chunk_service import DynamicChunker
+from services.rag_llm.text_utils import clean_text
 
 class EmbeddingService:
     """
@@ -130,23 +131,24 @@ class EmbeddingService:
                 # 3) Prepare Search documents
                 docs = []
                 for c, emb in zip(batch, embeddings_list):
+                    cleaned = clean_text(c["text"])
                     docs.append({
                         "id":           c["id"],
                         "documentName": document_name,
                         "page":         c["page"],
                         "tokens":       c["tokens"],
-                        "chunkText":    c["text"],
+                        "chunkText":    cleaned,
                         "embedding":    emb,
                         "createdAt":    datetime.datetime.utcnow().isoformat(),
                     })
 
                 # 4) Upload and log each result
                 self.search_client.upload_documents(docs)
-                self.logger.info(
-                    "Indexed chunks %s - %s",
-                    batch[0]["id"], batch[-1]["id"],
-                    extra={"batchSize": len(batch), "document": document_name}
-                )
+                #self.logger.info(
+                #    "Indexed chunks %s - %s",
+                #    batch[0]["id"], batch[-1]["id"],
+                #    extra={"batchSize": len(batch), "document": document_name}
+                #)
 
 
             except OpenAIError as oai_err:
