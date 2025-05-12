@@ -216,17 +216,23 @@ class RetrievalService:
         # print(f"DEBUG - Retrieved {len(chunks)} chunks for query '{query}'")
 
         # 2) build the prompt with inline citations
-        user_prompt = f"QUESTION: {question}\n\n"
+        lines = [
+            f"QUESTION: {question}",
+            "Use the following excerpts to answer:",
+            ]
         for c in chunks:
-            #print(c["text"])
-            user_prompt += f"[Page {c['page']} | Chunk {c['id']}]\n{c['text']}\n\n"
-        user_prompt += "Answer YES or NO. If YES, list the page number(s). Answer:"
-        print(f"DEBUG - {user_prompt}")
+            lines.append(f"- (Page {c['page']}) {c['text']}")
+        lines.extend([
+            "",
+            "Answer **YES** or **NO** only.",
+            "If YES, provide citations exactly like this: CITATIONS: [12, 34]."
+        ])
+        user_prompt = "\n".join(lines)
+        # print(f"DEBUG - User prompt: {user_prompt}")
 
         # 3) Choose which system message to use
         sys_msg = system_prompt or self.system_prompt
         # print(f"DEBUG - Using system prompt: {sys_msg}")
-
 
         # 4) call the chat completion endpoint
         try:
@@ -247,11 +253,18 @@ class RetrievalService:
             )
             answer = "NO — (error)"
 
-        # 4) parse out any cited page numbers
-        pages = [
-            int(p)
-            for p in re.findall(r"page\s*(\d+)", answer, flags=re.IGNORECASE)
-        ]
+        # 5) parse out any cited page numbers in either bracket or “page X” form
+        bracketed = re.findall(r"\[([0-9,\s]+)\]", answer)
+        if bracketed:
+            parsed = [int(n) for part in bracketed for n in part.split(",")]
+        else:
+            parsed = [int(p) for p in re.findall(r"page\s*(\d+)", answer, flags=re.IGNORECASE)]
 
-        return {"answer": answer, "citations": sorted(set(pages))}
+        # 6) only fallback on YES if still empty
+        if answer.upper().startswith("YES") and not parsed:
+            parsed = [c["page"] for c in chunks]
+
+        citations = sorted(set(parsed))
+
+        return {"answer": answer, "citations": citations}
 
