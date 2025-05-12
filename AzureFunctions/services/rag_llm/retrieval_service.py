@@ -186,19 +186,6 @@ class RetrievalService:
             )
             return []
 
-        # 5) (Optional) Debug each hit
-        """
-        for hit in results:
-            # DEBUG: log the raw hits
-            self.logger.debug(
-                "Retrieved chunk",
-                extra={
-                    "chunk_id":   hit["id"],
-                    "page":       hit["page"],
-                    "text_snip":  hit["chunkText"][:200]  # first 200 chars
-                }
-            )
-        """
         # 6) Return minimal info
         return [
             {"id": r["id"], "page": r["page"], "text": r["chunkText"]}
