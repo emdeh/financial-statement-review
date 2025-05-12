@@ -225,7 +225,7 @@ class RetrievalService:
 
         # 3) Choose which system message to use
         sys_msg = system_prompt or self.system_prompt
-        print(f"DEBUG - Using system prompt: {sys_msg}")
+        # print(f"DEBUG - Using system prompt: {sys_msg}")
 
 
         # 4) call the chat completion endpoint

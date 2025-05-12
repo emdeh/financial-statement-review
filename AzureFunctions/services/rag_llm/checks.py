@@ -93,7 +93,6 @@ CHECKS = [
         - “The directors have significant doubt about the company's ability to continue…”
         - “Events cast material uncertainty over the entity's going concern assumption.”
         - “Current liabilities exceed current assets by $X, which may jeopardise continuity.”
-        
     Return “No” for:
         - Boiler-plate language in the “Responsibilities of Directors/Auditor” section.
         - Any generic mention of the term “going concern.”
