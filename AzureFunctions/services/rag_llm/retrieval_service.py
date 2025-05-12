@@ -197,7 +197,7 @@ class RetrievalService:
                         check_name: str,
                         question: str,
                         query: str,
-                        k: int = 3,
+                        k: int = 5,
                         system_prompt: str = None,
                         scoring_profile: str = None,
                         scoring_parameters: list[str] = None,
@@ -238,9 +238,10 @@ class RetrievalService:
         
         # DEBUG: Inspect each chunk's context
         for c in chunks:
-            print("DEBUG - CHUNKS INCLUDED IN PROMPT")
-            print(f"DEBUG ─ CHUNK ID={c['id']}, page={c['page']}, tokens≈{len(c['text'].split())}")
-            print(f"DEBUG ─ TEXT SNIPPET: {c['text'][:200]!r}\n")
+            pass
+            #print("DEBUG - CHUNKS INCLUDED IN PROMPT")
+            #print(f"DEBUG ─ CHUNK ID={c['id']}, page={c['page']}, tokens≈{len(c['text'].split())}")
+            #print(f"DEBUG ─ TEXT SNIPPET: {c['text'][:200]!r}\n")
         
         # print(f"DEBUG - Retrieved {len(chunks)} chunks for query '{query}'")
 
@@ -305,5 +306,9 @@ class RetrievalService:
 
         citations = sorted(set(parsed))
 
-        return {"answer": answer, "citations": citations}
+
+        return {
+            "answer": answer,
+            "citations": citations,
+            "chunks": chunks}
 

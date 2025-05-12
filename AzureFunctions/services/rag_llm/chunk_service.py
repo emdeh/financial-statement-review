@@ -56,7 +56,7 @@ class DynamicChunker:
         Initialise the chunker with settings from environment variables.
         """
         # Read settings with safe fall-backs
-        self.chunk_tokens = int(os.environ.get("CHUNK_TOKENS", 300))
+        self.chunk_tokens = int(os.environ.get("CHUNK_TOKENS", 1000))
         overlap_frac = float(os.environ.get("CHUNK_OVERLAP", 0.1))
         self.model = os.getenv("AZURE_OPENAI_EMBEDDING_MODEL",
                                "text-embedding-3-small")
@@ -68,11 +68,11 @@ class DynamicChunker:
             chunk_overlap= int(self.chunk_tokens * overlap_frac),
         )
         # DEBUG
-        print("DEBUG DYNAMIC CHUNKER INIT")
-        print(f"DEBUG CHUNK TOKENS: {self.chunk_tokens}")
-        print(f"DEBUG CHUNK OVERLAP: {overlap_frac}")
-        print(f"DEBUG SPLITTER.chunk_overlap: {self.splitter._chunk_overlap}")
-        print(f"DEBUG SPLITTER.chunk_size: {self.splitter._chunk_size}")
+        #print("DEBUG DYNAMIC CHUNKER INIT")
+        #print(f"DEBUG CHUNK TOKENS: {self.chunk_tokens}")
+        #print(f"DEBUG CHUNK OVERLAP: {overlap_frac}")
+        #print(f"DEBUG SPLITTER.chunk_overlap: {self.splitter._chunk_overlap}")
+        #print(f"DEBUG SPLITTER.chunk_size: {self.splitter._chunk_size}")
 
 
 

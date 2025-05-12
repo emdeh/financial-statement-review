@@ -70,24 +70,24 @@ class CheckDef:
     include_patterns: list[str] = None
 
 CHECKS = [
-    CheckDef(
-        name="Profit or Loss Statement",
-        field_name="ProfitLoss",
-        question="Does this doc contain a profit or loss statement in a tabulated format, comparring the current reporting period to the previous financial year? Sometimes referred to as a P&L or statement or other comphrensive income",
-        query="profit or loss (P&L) statement"
-    ),
-    CheckDef(
-        name="Balance Sheet",
-        field_name="BalanceSheet",
-        question="Does this doc contain a statement of changes in equity in a tabulated format, comparing the current reporting period to the previous financial year?",
-        query="balance sheet"
-    ),
-    CheckDef(
-        name="Cash Flow Statement",
-        field_name="CashFlow",
-        question="Does this doc contain a statement of cash flow in a tabulated format, comparing the current reporting period to the previous financial year?",
-        query="cash flow statement"
-    ),
+#    CheckDef(
+#        name="Profit or Loss Statement",
+#        field_name="ProfitLoss",
+#        question="Does this doc contain a profit or loss statement in a tabulated format, comparing the #current reporting period to the previous financial year? Sometimes referred to as a P&L or statement #or other comphrensive income. Focus on areas with tabled data - ignore just mentions of profit or #loss.",
+#        query="profit or loss (P&L) statement"
+#    ),
+#    CheckDef(
+#        name="Balance Sheet",
+#        field_name="BalanceSheet",
+#        question="Does this doc contain a statement of changes in equity in a tabulated format, comparing #the current reporting period to the previous financial year? Focus on areas with tabled data - #ignore just mentions of a balance sheet.",
+#        query="balance sheet"
+#    ),
+#    CheckDef(
+#        name="Cash Flow Statement",
+#        field_name="CashFlow",
+#        question="Does this doc contain a statement of cash flow in a tabulated format, comparing the #current reporting period to the previous financial year? Focus on areas with tabled data - ignore #just mentions of 'cash flow' that appear in text.",
+#        query="cash flow statement"
+#    ),
     CheckDef(
     name="Going Concern",
     field_name="GoingConcern",
@@ -103,7 +103,9 @@ CHECKS = [
         """,
     query="significant doubt material uncertainty unable to continue foreseeable future",
     scoring_profile="materialUncertaintyBoost",
-    scoring_parameters=["tags-material uncertainty,significant doubt,probable"],
+    scoring_parameters=[
+        "tags--material uncertainty,significant doubt,probable"
+        ],
     filter_patterns=[
             r"Responsibilities of Directors",
             r"Auditor's Responsibilities",
