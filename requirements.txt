@@ -128,7 +128,7 @@ pyOpenSSL==25.0.0
 PySocks==1.7.1
 python-dateutil==2.9.0.post0
 PyYAML==6.0.2
-requests==2.32.3
+requests==2.32.4
 requests-oauthlib==2.0.0
 rpds==5.1.0
 scp==0.15.0
